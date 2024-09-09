@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Articles - Kashmir Villages Encyclopedia</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Kashmir Villages Encyclopedia</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="submit-article.html">Submit Article</a>
+      <button id="profile-btn" style="display: none;">Profile</button>
+      <button id="login-btn">Login</button>
+      <button id="logout-btn" style="display: none;">Logout</button>
+    </nav>
+  </header>
+  
+  <main>
+    <section id="search">
+      <h2>Search Articles</h2>
+      <input type="text" id="search-query" placeholder="Search by name">
+      <button id="search-btn">Search</button>
+    </section>
+
+    <section id="categories">
+      <h2>Filter Articles</h2>
+      <label for="filter-district">District:</label>
+      <select id="filter-district">
+        <option value="">Select District</option>
+      </select>
+
+      <label for="filter-block">Block:</label>
+      <select id="filter-block">
+        <option value="">Select Block</option>
+      </select>
+    </section>
+
+    <section id="articles-list">
+      <h2>Articles</h2>
+      <div id="articles-container" class="articles-grid"></div>
+    </section>
+  </main>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="articles.js"></script>
+</body>
+</html>
