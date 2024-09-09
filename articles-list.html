@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article List - Kashmir Villages Encyclopedia</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Kashmir Villages Encyclopedia</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="add-article.html">Add Article</a>
+      <a href="profile.html" id="profile-btn" style="display: none;">Profile</a>
+      <a href="#" id="login-btn">Login</a>
+      <a href="#" id="logout-btn" style="display: none;">Logout</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="search">
+      <h2>Search Articles</h2>
+      <input type="text" id="search-query" placeholder="Search by name">
+      <button id="search-btn">Search</button>
+    </section>
+
+    <section id="articles-list">
+      <h2>Articles</h2>
+      <div id="articles-container"></div>
+      <button id="load-more-btn">Load More</button>
+    </section>
+  </main>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
