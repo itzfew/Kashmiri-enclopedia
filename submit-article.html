@@ -3,43 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Article - Kashmir Villages Encyclopedia</title>
+  <title>Submit Article - Kashmir Villages Encyclopedia</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <div class="container">
-      <h1>Kashmir Villages Encyclopedia</h1>
-      <nav>
-        <a href="index.html">Home</a>
-        <a href="articles-list.html">Article List</a>
-        <a href="profile.html" id="profile-btn" style="display: none;">Profile</a>
-        <a href="#" id="login-btn">Login</a>
-        <a href="#" id="logout-btn" style="display: none;">Logout</a>
-      </nav>
-    </div>
+    <h1>Kashmir Villages Encyclopedia</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="articles.html">Articles</a>
+      <button id="profile-btn" style="display: none;">Profile</button>
+      <button id="login-btn">Login</button>
+      <button id="logout-btn" style="display: none;">Logout</button>
+    </nav>
   </header>
-
+  
   <main>
-    <div class="container">
-      <h2>Add New Article</h2>
+    <section id="article-form">
+      <h2>Submit an Article</h2>
       <form id="form">
         <label for="article-name">Article Name:</label>
         <input type="text" id="article-name" required>
+
         <label for="district">District:</label>
         <input type="text" id="district" required>
+
         <label for="block">Block:</label>
         <input type="text" id="block" required>
+
         <label for="content">Content:</label>
-        <textarea id="content" rows="6" required></textarea>
-        <button type="submit">Add Article</button>
+        <textarea id="content" rows="10" required></textarea>
+
+        <button type="submit">Submit</button>
       </form>
-    </div>
+    </section>
   </main>
 
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="app.js"></script>
+  <script src="submit-article.js"></script>
 </body>
 </html>
