@@ -219,7 +219,8 @@
         });
 
         async function listFilesAndFolders(path = '') {
-            if (!auth.currentUser) {
+            const user = auth.currentUser;
+            if (!user) {
                 openLoginModal();
                 return; // Stop execution if not logged in
             }
