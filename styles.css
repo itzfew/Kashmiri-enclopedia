@@ -1,16 +1,16 @@
 body {
     font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
     margin: 0;
     padding: 20px;
-    background-color: #f4f4f4;
 }
 
-.container {
+#app {
     max-width: 800px;
     margin: auto;
     background: white;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -18,15 +18,16 @@ h1 {
     text-align: center;
 }
 
-.pdf-item {
-    margin: 10px 0;
+.file-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
 }
 
-.pdf-item a {
+.file-item a {
     text-decoration: none;
     color: #007bff;
 }
 
-.pdf-item a:hover {
+.file-item a:hover {
     text-decoration: underline;
 }
