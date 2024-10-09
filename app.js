@@ -1,4 +1,4 @@
-// Your Firebase configuration
+ // Your Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
     authDomain: "eduhub-a3762.firebaseapp.com",
