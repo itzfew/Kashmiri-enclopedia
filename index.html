@@ -52,36 +52,6 @@
             margin-left: 10px;
             border: 2px solid #007bff;
         }
-        .menu {
-            position: relative;
-            display: inline-block;
-        }
-        .share-buttons {
-            display: none;
-            position: absolute;
-            background-color: white;
-            border: 1px solid #007bff;
-            border-radius: 5px;
-            padding: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            text-align: center;
-        }
-        .share-buttons button {
-            padding: 10px 15px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 5px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            width: 100%;
-        }
-        .share-buttons button:hover {
-            background-color: #0056b3;
-        }
         .search-container {
             margin: 20px 0;
             display: flex;
@@ -151,25 +121,23 @@
             font-size: 16px;
             color: #6c757d;
         }
-        .menu {
-            position: absolute;
-            right: 20px;
-            top: 70px;
+        #login-modal {
             display: none;
-            flex-direction: column;
-            background-color: white;
-            border: 1px solid #007bff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
             border-radius: 5px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 100;
-        }
-        .menu-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .menu-item:hover {
-            background-color: #f1f1f1;
+            text-align: center;
         }
     </style>
 </head>
@@ -184,10 +152,7 @@
         </div>
     </div>
     <h1>EduHub Storage Browser</h1>
-    <div class="menu" id="menu">
-        <div class="menu-item" onclick="copyLink()"><i class="fas fa-link"></i> Copy Website Link</div>
-        <div class="menu-item" onclick="openTelegram()"><i class="fab fa-telegram-plane"></i> Open Telegram</div>
-    </div>
+    
     <div class="search-container">
         <input type="text" id="search-input" placeholder="Search files and folders..." oninput="searchFiles()">
         <button class="refresh-button" onclick="refreshFiles()"><i class="fas fa-sync-alt"></i> Refresh</button>
@@ -195,24 +160,31 @@
     <div class="path" id="current-path">Current Path: /</div>
     <div id="file-structure"></div>
 
+    <div id="login-modal">
+        <div class="modal-content">
+            <h2>Please Log In</h2>
+            <button onclick="login()">Continue with Google</button>
+            <button onclick="closeLoginModal()">Cancel</button>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-storage.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
         };
 
         firebase.initializeApp(firebaseConfig);
         const storage = firebase.storage();
         const auth = firebase.auth();
-
         let currentPath = '';
 
         auth.onAuthStateChanged(user => {
@@ -222,6 +194,7 @@
             if (user) {
                 userName.textContent = user.displayName || "User";
                 profilePic.src = user.photoURL || "https://via.placeholder.com/40";
+                refreshFiles(); // Refresh files after login
             } else {
                 userName.textContent = "Guest";
                 profilePic.src = "https://via.placeholder.com/40"; // Default image
@@ -229,9 +202,13 @@
         });
 
         async function listFilesAndFolders(path = '') {
+            if (!auth.currentUser) {
+                openLoginModal();
+                return; // Stop execution if not logged in
+            }
+
             const listRef = storage.ref(path);
             const items = await listRef.listAll();
-
             const structure = document.createElement('ul');
 
             items.prefixes.forEach(folderRef => {
@@ -270,20 +247,21 @@
             pathDisplay.textContent = `Current Path: /${currentPath}`;
         }
 
-        function copyLink() {
-            const link = "https://www.wahee.com";
-            navigator.clipboard.writeText(link).then(() => {
-                alert("Website link copied to clipboard: " + link);
+        function openLoginModal() {
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+
+        function login() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then(result => {
+                closeLoginModal();
+            }).catch(error => {
+                console.error("Error signing in: ", error);
             });
-        }
-
-        function openTelegram() {
-            window.open("https://t.me/waheedc", "_blank");
-        }
-
-        function toggleMenu() {
-            const menu = document.getElementById('menu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         function searchFiles() {
@@ -299,15 +277,6 @@
 
         function refreshFiles() {
             listFilesAndFolders(currentPath);
-        }
-
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(result => {
-                // User signed in
-            }).catch(error => {
-                console.error("Error signing in: ", error);
-            });
         }
 
         // Start listing from the root
