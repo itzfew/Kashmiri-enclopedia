@@ -31,3 +31,20 @@ h1 {
 .file-item a:hover {
     text-decoration: underline;
 }
+
+.folder-item {
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.message {
+    margin-bottom: 20px;
+    color: red;
+}
+
+.path {
+    margin: 10px 0;
+    font-style: italic;
+    color: #555;
+}
