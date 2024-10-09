@@ -1,3 +1,4 @@
+/* Existing styles remain the same */
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f2f5;
@@ -60,4 +61,36 @@ header {
 
 .file-item i, .folder-item i {
     margin-right: 10px;
+}
+
+#search {
+    width: calc(100% - 120px);
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+#fileUpload {
+    margin-left: 10px;
+}
+
+#uploadBtn {
+    padding: 8px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#uploadBtn:hover {
+    background: #0056b3;
+}
+
+.loading {
+    display: none; /* Hidden by default */
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
 }
