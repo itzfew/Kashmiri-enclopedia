@@ -1,50 +1,63 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #f0f2f5;
+    color: #333;
     margin: 0;
-    padding: 20px;
+    padding: 0;
 }
 
 #app {
     max-width: 800px;
-    margin: auto;
+    margin: 50px auto;
     background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
+header {
     text-align: center;
-}
-
-.file-item {
-    border-bottom: 1px solid #ddd;
-    padding: 10px 0;
-}
-
-.file-item a {
-    text-decoration: none;
-    color: #007bff;
-}
-
-.file-item a:hover {
-    text-decoration: underline;
-}
-
-.folder-item {
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
+    margin-bottom: 20px;
 }
 
 .message {
+    padding: 10px;
     margin-bottom: 20px;
-    color: red;
+    border-radius: 4px;
+    display: none; /* Hidden by default */
 }
 
 .path {
-    margin: 10px 0;
-    font-style: italic;
-    color: #555;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-item, .folder-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    background: #f9f9f9;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.file-item:hover, .folder-item:hover {
+    background: #e2e6ea;
+}
+
+.file-item a, .folder-item {
+    text-decoration: none;
+    color: #007bff;
+    flex-grow: 1;
+}
+
+.file-item i, .folder-item i {
+    margin-right: 10px;
 }
