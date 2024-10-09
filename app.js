@@ -18,10 +18,11 @@ function showMessage(message, isError = false) {
     const messageDiv = document.getElementById('message');
     messageDiv.textContent = message;
     messageDiv.style.color = isError ? 'red' : 'green';
+    messageDiv.style.display = 'block'; // Show message
 }
 
 // Function to fetch files and folders from Firebase Storage
-function fetchFiles(path = '', folderName = '') {
+function fetchFiles(path = '') {
     const listRef = storage.ref(path);
     
     showMessage('Loading files...');
@@ -39,7 +40,7 @@ function fetchFiles(path = '', folderName = '') {
             itemRef.getDownloadURL().then((url) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
-                fileItem.innerHTML = `<a href="${url}" target="_blank">${itemRef.name}</a>`;
+                fileItem.innerHTML = `<i class="fas fa-file"></i><a href="${url}" target="_blank">${itemRef.name}</a>`;
                 fileList.appendChild(fileItem);
             }).catch(error => showMessage(`Error getting URL for file ${itemRef.name}: ${error.message}`, true));
         });
@@ -48,7 +49,7 @@ function fetchFiles(path = '', folderName = '') {
         res.prefixes.forEach((folderRef) => {
             const folderItem = document.createElement('div');
             folderItem.className = 'folder-item';
-            folderItem.textContent = folderRef.name;
+            folderItem.innerHTML = `<i class="fas fa-folder"></i>${folderRef.name}`;
             folderItem.onclick = () => fetchFiles(folderRef.fullPath); // Navigate to folder
             fileList.appendChild(folderItem);
         });
