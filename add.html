@@ -9,18 +9,18 @@
 <body>
     <div class="container">
         <h1>Add Exam/Quiz</h1>
-        <input type="text" id="examTitle" placeholder="Exam Title">
+        <input type="text" id="examTitle" placeholder="Exam Title" required>
         <button class="btn" onclick="addExam()">Create Exam</button>
 
         <h2>Add Quiz to Existing Exam</h2>
         <select id="examSelect"></select>
-        <input type="text" id="quizTitle" placeholder="Quiz Title">
-        <textarea id="quizQuestion" placeholder="Enter your question"></textarea>
-        <input type="text" id="option1" placeholder="Option 1">
-        <input type="text" id="option2" placeholder="Option 2">
-        <input type="text" id="option3" placeholder="Option 3">
-        <input type="text" id="option4" placeholder="Option 4">
-        <input type="text" id="correctOption" placeholder="Correct Option (1-4)">
+        <input type="text" id="quizTitle" placeholder="Quiz Title" required>
+        <textarea id="quizQuestion" placeholder="Enter your question" required></textarea>
+        <input type="text" id="option1" placeholder="Option 1" required>
+        <input type="text" id="option2" placeholder="Option 2" required>
+        <input type="text" id="option3" placeholder="Option 3" required>
+        <input type="text" id="option4" placeholder="Option 4" required>
+        <input type="number" id="correctOption" placeholder="Correct Option (1-4)" min="1" max="4" required>
         <button class="btn" onclick="addQuiz()">Add Quiz</button>
 
         <div id="status" class="status"></div>
@@ -104,7 +104,6 @@
             });
         }
 
-        // Load exams when the page is loaded
         window.onload = loadExams;
     </script>
 </body>
