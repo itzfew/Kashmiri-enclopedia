@@ -7,16 +7,19 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
 </head>
 <body>
     <div class="container">
         <h1>Exam List</h1>
+        <div id="userInfo"></div>
         <div id="examList"></div>
         <button class="btn" onclick="location.href='add.html'">Add Exam/Quiz</button>
         <button class="btn" onclick="location.href='leaderboard.html'">View Leaderboard</button>
     </div>
 
     <script src="firebase.js"></script>
+    <script src="auth.js"></script>
     <script>
         function displayExams() {
             const examList = document.getElementById('examList');
@@ -37,7 +40,26 @@
             });
         }
 
-        window.onload = displayExams;
+        function displayUserInfo() {
+            const user = firebase.auth().currentUser;
+            const userInfoDiv = document.getElementById('userInfo');
+
+            if (user) {
+                userInfoDiv.innerHTML = `
+                    <p>Welcome, ${user.displayName || user.email}!</p>
+                    <button class="btn" onclick="logout()">Logout</button>
+                `;
+            } else {
+                userInfoDiv.innerHTML = `
+                    <p>Please <a href="login.html">login</a> to continue.</p>
+                `;
+            }
+        }
+
+        window.onload = () => {
+            displayExams();
+            displayUserInfo();
+        };
     </script>
 </body>
 </html>
