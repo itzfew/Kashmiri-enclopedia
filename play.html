@@ -102,6 +102,21 @@
             `;
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('nextQuestion').style.display = 'none';
+
+            saveScore();
+        }
+
+        function saveScore() {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                const scoreData = {
+                    username: user.displayName || user.email,
+                    score: score,
+                    examKey: localStorage.getItem('currentExam'),
+                    timestamp: Date.now()
+                };
+                database.ref('scores').push(scoreData);
+            }
         }
 
         window.onload = loadQuiz;
