@@ -8,76 +8,49 @@
 </head>
 <body>
     <div class="container">
-        <h1 id="examTitle"></h1>
+        <h1>Play Quiz</h1>
         <div id="quizContainer"></div>
-        <button class="btn" id="nextQuestion">Next Question</button>
+        <button class="btn" id="nextButton" style="display: none;" onclick="nextQuestion()">Next</button>
+        <button class="btn" id="submitButton" style="display: none;" onclick="submitQuiz()">Submit</button>
         <div id="result" class="status"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
+        const auth = firebase.auth();
+        let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
-        let totalQuestions = 0;
-        let userAnswers = [];
-        let quizzes = [];
 
         function loadQuiz() {
             const examKey = localStorage.getItem('currentExam');
-            database.ref(`exams/${examKey}`).once('value').then(snapshot => {
-                const examData = snapshot.val();
-                document.getElementById('examTitle').innerText = examData.title;
+            const userId = auth.currentUser.uid;
 
-                const quizzesRef = database.ref(`exams/${examKey}/quizzes`);
-                quizzesRef.once('value').then(quizSnapshot => {
-                    quizSnapshot.forEach(childSnapshot => {
-                        quizzes.push(childSnapshot.val());
-                    });
-                    totalQuestions = quizzes.length;
-                    displayQuestion();
-                });
+            firebase.database().ref(`exams/${userId}/${examKey}`).once('value').then(snapshot => {
+                const examData = snapshot.val();
+                questions = examData.questions;
+                displayQuestion();
             });
         }
 
         function displayQuestion() {
-            if (currentQuestionIndex < quizzes.length) {
-                const quiz = quizzes[currentQuestionIndex];
-                const quizContainer = document.getElementById('quizContainer');
-                quizContainer.innerHTML = `
-                    <h3>${quiz.title}</h3>
-                    <p>${quiz.question}</p>
-                    ${quiz.options.map((option, index) => `
-                        <label>
-                            <input type="radio" name="quiz_${currentQuestionIndex}" value="${index + 1}"> ${option}
-                        </label>
-                    `).join('')}
-                `;
-                document.getElementById('nextQuestion').innerText = currentQuestionIndex === quizzes.length - 1 ? 'Submit Quiz' : 'Next Question';
-            } else {
-                showResults();
-            }
+            const questionContainer = document.getElementById('quizContainer');
+            questionContainer.innerHTML = '';
+
+            const question = questions[currentQuestionIndex];
+            questionContainer.innerHTML = `<h2>${question.question}</h2>`;
+            question.options.forEach((option, index) => {
+                questionContainer.innerHTML += `<label><input type="radio" name="option" value="${index + 1}"> ${option}</label><br>`;
+            });
+
+            document.getElementById('nextButton').style.display = currentQuestionIndex < questions.length - 1 ? 'block' : 'none';
+            document.getElementById('submitButton').style.display = currentQuestionIndex === questions.length - 1 ? 'block' : 'none';
         }
 
-        document.getElementById('nextQuestion').onclick = function() {
-            const selectedAnswer = document.querySelector(`input[name="quiz_${currentQuestionIndex}"]:checked`);
-            if (selectedAnswer) {
-                userAnswers[currentQuestionIndex] = parseInt(selectedAnswer.value);
-                if (userAnswers[currentQuestionIndex] === quizzes[currentQuestionIndex].correctOption) {
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+            if (selectedOption) {
+                const selectedValue = parseInt(selectedOption.value);
+                if (selectedValue === parseInt(questions[currentQuestionIndex].correctOption)) {
                     score += 4;
                 } else {
                     score -= 1;
@@ -85,41 +58,40 @@
                 currentQuestionIndex++;
                 displayQuestion();
             } else {
-                alert('Please select an answer before proceeding.');
+                alert('Please select an option!');
             }
-        };
-
-        function showResults() {
-            const resultContainer = document.getElementById('result');
-            const correctAnswers = userAnswers.filter((answer, index) => answer === quizzes[index].correctOption).length;
-            const incorrectAnswers = totalQuestions - correctAnswers;
-            const missedAnswers = totalQuestions - userAnswers.filter(answer => answer !== undefined).length;
-            const percentage = (score / (totalQuestions * 4)) * 100;
-
-            resultContainer.innerHTML = `
-                <h2>Quiz Results</h2>
-                <p>Total Score: ${score}</p>
-                <p>Percentage: ${percentage.toFixed(2)}%</p>
-                <p>Total Questions Attempted: ${totalQuestions}</p>
-                <p>Correct Answers: ${correctAnswers}</p>
-                <p>Incorrect Answers: ${incorrectAnswers}</p>
-                <p>Missed Questions: ${missedAnswers}</p>
-                <h3>Details</h3>
-                <ul>
-                    ${quizzes.map((quiz, index) => `
-                        <li>
-                            <strong>${quiz.question}</strong><br>
-                            Your answer: Option ${userAnswers[index] || 'Not Answered'}<br>
-                            Correct answer: Option ${quiz.correctOption}
-                        </li>
-                    `).join('')}
-                </ul>
-            `;
-            document.getElementById('quizContainer').style.display = 'none';
-            document.getElementById('nextQuestion').style.display = 'none';
         }
 
-        // Load quiz on page load
+        function submitQuiz() {
+            const totalQuestions = questions.length;
+            const correctAnswers = score / 4;
+            const incorrectAnswers = totalQuestions - correctAnswers;
+
+            document.getElementById('result').innerHTML = `
+                <h3>Your Results:</h3>
+                <p>Total Score: ${score}</p>
+                <p>Correct Answers: ${correctAnswers}</p>
+                <p>Incorrect Answers: ${incorrectAnswers}</p>
+                <p>Total Questions: ${totalQuestions}</p>
+            `;
+
+            saveRecord(score);
+        }
+
+        function saveRecord(score) {
+            const userId = auth.currentUser.uid;
+            const examKey = localStorage.getItem('currentExam');
+            const date = new Date().toLocaleString();
+
+            firebase.database().ref(`leaderboard/${examKey}`).push({
+                userId: userId,
+                score: score,
+                date: date
+            }).then(() => {
+                console.log('Record saved successfully!');
+            }).catch(error => console.error('Error saving record:', error));
+        }
+
         window.onload = loadQuiz;
     </script>
 </body>
