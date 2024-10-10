@@ -6,21 +6,123 @@
     <title>Quiz Exam List</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+        .exam-item {
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .exam-item:hover {
+            background: #e9ecef;
+        }
+        .btn {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .profile-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .profile-popup {
+            display: none;
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 1000;
+        }
+        .popup-close {
+            cursor: pointer;
+            float: right;
+            font-weight: bold;
+        }
+        .form-input {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .popup-btn {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Exam List</h1>
-        <div id="userInfo"></div>
-        <div id="examList"></div>
         <button class="btn" onclick="location.href='add.html'">Add Exam/Quiz</button>
-        <button class="btn" onclick="location.href='leaderboard.html'">View Leaderboard</button>
+        <h1>Exam List</h1>
+        <div id="examList"></div>
+        <button class="profile-btn" onclick="toggleProfilePopup()">👤</button>
+        <div class="profile-popup" id="profilePopup">
+            <span class="popup-close" onclick="toggleProfilePopup()">✖</span>
+            <h3>Profile</h3>
+            <div id="profileInfo"></div>
+            <input type="text" id="name" class="form-input" placeholder="Name" />
+            <input type="email" id="email" class="form-input" placeholder="Email" />
+            <input type="password" id="password" class="form-input" placeholder="Password" />
+            <button class="btn popup-btn" onclick="signUp()">Sign Up</button>
+            <button class="btn popup-btn" onclick="login()">Log In</button>
+            <button class="btn popup-btn" onclick="loginWithGoogle()">Log In with Google</button>
+        </div>
     </div>
 
-    <script src="firebase.js"></script>
-    <script src="auth.js"></script>
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
         function displayExams() {
             const examList = document.getElementById('examList');
             examList.innerHTML = '';
@@ -40,26 +142,62 @@
             });
         }
 
-        function displayUserInfo() {
-            const user = firebase.auth().currentUser;
-            const userInfoDiv = document.getElementById('userInfo');
+        function toggleProfilePopup() {
+            const popup = document.getElementById('profilePopup');
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+            updateProfileInfo();
+        }
 
+        function updateProfileInfo() {
+            const profileInfo = document.getElementById('profileInfo');
+            const user = auth.currentUser;
             if (user) {
-                userInfoDiv.innerHTML = `
-                    <p>Welcome, ${user.displayName || user.email}!</p>
-                    <button class="btn" onclick="logout()">Logout</button>
-                `;
+                profileInfo.innerHTML = `<p>Welcome, ${user.displayName || user.email}</p>`;
             } else {
-                userInfoDiv.innerHTML = `
-                    <p>Please <a href="login.html">login</a> to continue.</p>
-                `;
+                profileInfo.innerHTML = '<p>Please log in.</p>';
             }
         }
 
-        window.onload = () => {
-            displayExams();
-            displayUserInfo();
-        };
+        function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+
+            auth.createUserWithEmailAndPassword(email, password).then(userCredential => {
+                const user = userCredential.user;
+                user.updateProfile({
+                    displayName: name
+                });
+                toggleProfilePopup();
+                updateProfileInfo();
+            }).catch(error => {
+                alert(error.message);
+            });
+        }
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            auth.signInWithEmailAndPassword(email, password).then(() => {
+                toggleProfilePopup();
+                updateProfileInfo();
+            }).catch(error => {
+                alert(error.message);
+            });
+        }
+
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then(result => {
+                toggleProfilePopup();
+                updateProfileInfo();
+            }).catch(error => {
+                alert(error.message);
+            });
+        }
+
+        window.onload = displayExams;
     </script>
 </body>
 </html>
