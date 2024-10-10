@@ -68,18 +68,28 @@
             quizzesRef.once('value').then(quizSnapshot => {
                 let score = 0;
                 let totalQuestions = 0;
+                let detailedResults = '';
 
                 quizSnapshot.forEach(childSnapshot => {
                     totalQuestions++;
                     const quizData = childSnapshot.val();
                     const selectedAnswer = document.querySelector(`input[name="quiz_${childSnapshot.key}"]:checked`);
-                    if (selectedAnswer && selectedAnswer.value === quizData.correctOption) {
-                        score++;
+                    if (selectedAnswer) {
+                        const userAnswer = parseInt(selectedAnswer.value);
+                        const correctAnswer = parseInt(quizData.correctOption);
+
+                        if (userAnswer === correctAnswer) {
+                            score += 4; // Correct answer
+                            detailedResults += `<p>${quizData.question}: Correct! (+4 points)</p>`;
+                        } else {
+                            score -= 1; // Wrong answer
+                            detailedResults += `<p>${quizData.question}: Wrong! (-1 point) Correct answer was Option ${correctAnswer}</p>`;
+                        }
                     }
                 });
 
-                const resultText = `You scored ${score} out of ${totalQuestions}`;
-                document.getElementById('result').innerText = resultText;
+                const resultText = `You scored ${score} out of ${totalQuestions * 4}`;
+                document.getElementById('result').innerHTML = resultText + '<br>' + detailedResults;
             });
         };
 
