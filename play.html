@@ -179,9 +179,9 @@
             if (selectedAnswer) {
                 userAnswers[currentQuestionIndex] = parseInt(selectedAnswer.value);
                 if (userAnswers[currentQuestionIndex] === quizzes[currentQuestionIndex].correctOption) {
-                    score += 4;
+                    score += 4; // Correct answer
                 } else {
-                    score -= 1;
+                    score -= 1; // Incorrect answer
                 }
                 currentQuestionIndex++;
                 displayQuestion();
@@ -209,14 +209,14 @@
             `;
             resultContainer.style.display = 'block';
 
-            displayDetails(correctAnswers, incorrectAnswers, missedAnswers);
+            displayDetails();
             drawChart(correctAnswers, incorrectAnswers, missedAnswers);
 
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('nextQuestion').style.display = 'none';
         }
 
-        function displayDetails(correct, incorrect, missed) {
+        function displayDetails() {
             const detailsContainer = document.getElementById('details');
             detailsContainer.innerHTML = `
                 <h3>Details</h3>
@@ -224,7 +224,7 @@
                     ${quizzes.map((quiz, index) => `
                         <li class="${userAnswers[index] === quiz.correctOption ? 'correct' : userAnswers[index] === undefined ? 'missed' : 'incorrect'}">
                             <strong>${quiz.question}</strong><br>
-                            Your answer: Option ${userAnswers[index] || 'Not Answered'}<br>
+                            Your answer: Option ${userAnswers[index] ? userAnswers[index] : 'Not Answered'}<br>
                             Correct answer: Option ${quiz.correctOption}
                         </li>
                     `).join('')}
