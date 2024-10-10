@@ -3,49 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Quiz</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Interactive Quiz App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8, #e2e6ea);
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            padding: 20px;
+            text-align: center;
         }
         h1 {
-            text-align: center;
             color: #007BFF;
         }
         .quiz-item {
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             padding: 15px;
             margin: 10px 0;
             background: #f9f9f9;
+            transition: transform 0.2s;
+        }
+        .quiz-item:hover {
+            transform: scale(1.02);
         }
         label {
             display: block;
             margin: 5px 0;
+            cursor: pointer;
         }
         .btn {
             background: #007BFF;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 15px;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s;
             width: 100%;
+            font-size: 16px;
         }
         .btn:hover {
             background: #0056b3;
@@ -53,17 +61,15 @@
         .status {
             margin: 20px 0;
             font-weight: bold;
-            text-align: center;
         }
-        #result {
-            display: none;
-        }
-        canvas {
-            margin: 20px auto;
-            display: block;
+        .timer {
+            font-size: 24px;
+            color: #dc3545;
+            margin: 10px 0;
         }
         .details {
             margin-top: 20px;
+            text-align: left;
         }
         .correct {
             color: green;
@@ -74,17 +80,29 @@
         .missed {
             color: black;
         }
-        .timer {
+        canvas {
+            margin: 20px auto;
+            display: block;
+        }
+        .user-profile {
+            margin-bottom: 20px;
             text-align: center;
-            font-size: 24px;
-            color: #dc3545;
+        }
+        .progress {
+            margin: 20px 0;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="quizApp">
         <h1 id="examTitle"></h1>
+        <div class="user-profile" id="userProfile" style="display:none;">
+            <img id="userPhoto" src="" alt="User Photo" style="border-radius: 50%; width: 50px;">
+            <p id="userName"></p>
+        </div>
         <div class="timer" id="timer">Time Remaining: <span id="time">60</span> seconds</div>
+        <div id="progress" class="progress"></div>
         <div id="quizContainer"></div>
         <button class="btn" id="nextQuestion">Next Question</button>
         <div id="result" class="status"></div>
@@ -92,21 +110,23 @@
         <div class="details" id="details"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
-
         firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
         const database = firebase.database();
 
         let currentQuestionIndex = 0;
@@ -150,6 +170,7 @@
                     </div>
                 `;
                 document.getElementById('nextQuestion').innerText = currentQuestionIndex === quizzes.length - 1 ? 'Submit Quiz' : 'Next Question';
+                document.getElementById('progress').innerText = `Question ${currentQuestionIndex + 1} of ${totalQuestions}`;
             } else {
                 clearInterval(timerInterval);
                 showResults();
@@ -269,8 +290,33 @@
             });
         }
 
-        // Load quiz on page load
-        window.onload = loadQuiz;
+        // Google Sign-In
+        function googleSignIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                const user = result.user;
+                document.getElementById('userPhoto').src = user.photoURL;
+                document.getElementById('userName').innerText = user.displayName;
+                document.getElementById('userProfile').style.display = 'block';
+                loadQuiz();
+            }).catch((error) => {
+                console.error("Error during sign-in:", error);
+            });
+        }
+
+        // Load user on page load
+        window.onload = function() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    document.getElementById('userPhoto').src = user.photoURL;
+                    document.getElementById('userName').innerText = user.displayName;
+                    document.getElementById('userProfile').style.display = 'block';
+                    loadQuiz();
+                } else {
+                    googleSignIn();
+                }
+            });
+        };
     </script>
 </body>
 </html>
