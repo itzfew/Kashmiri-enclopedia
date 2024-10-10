@@ -10,7 +10,7 @@
     <div class="container">
         <h1 id="examTitle"></h1>
         <div id="quizContainer"></div>
-        <button class="btn" id="submitQuiz">Submit Quiz</button>
+        <button class="btn" id="nextQuestion">Next Question</button>
         <div id="result" class="status"></div>
     </div>
 
@@ -31,67 +31,93 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let totalQuestions = 0;
+        let userAnswers = [];
+        let quizzes = [];
+
         function loadQuiz() {
             const examKey = localStorage.getItem('currentExam');
             database.ref(`exams/${examKey}`).once('value').then(snapshot => {
                 const examData = snapshot.val();
                 document.getElementById('examTitle').innerText = examData.title;
 
-                const quizContainer = document.getElementById('quizContainer');
-                quizContainer.innerHTML = '';
-
                 const quizzesRef = database.ref(`exams/${examKey}/quizzes`);
                 quizzesRef.once('value').then(quizSnapshot => {
                     quizSnapshot.forEach(childSnapshot => {
-                        const quizData = childSnapshot.val();
-                        const quizItem = document.createElement('div');
-                        quizItem.className = 'quiz-item';
-                        quizItem.innerHTML = `
-                            <h3>${quizData.title}</h3>
-                            <p>${quizData.question}</p>
-                            ${quizData.options.map((option, index) => `
-                                <label>
-                                    <input type="radio" name="quiz_${childSnapshot.key}" value="${index + 1}"> ${option}
-                                </label>
-                            `).join('')}
-                        `;
-                        quizContainer.appendChild(quizItem);
+                        quizzes.push(childSnapshot.val());
                     });
+                    totalQuestions = quizzes.length;
+                    displayQuestion();
                 });
             });
         }
 
-        document.getElementById('submitQuiz').onclick = function() {
-            const examKey = localStorage.getItem('currentExam');
-            const quizzesRef = database.ref(`exams/${examKey}/quizzes`);
+        function displayQuestion() {
+            if (currentQuestionIndex < quizzes.length) {
+                const quiz = quizzes[currentQuestionIndex];
+                const quizContainer = document.getElementById('quizContainer');
+                quizContainer.innerHTML = `
+                    <h3>${quiz.title}</h3>
+                    <p>${quiz.question}</p>
+                    ${quiz.options.map((option, index) => `
+                        <label>
+                            <input type="radio" name="quiz_${currentQuestionIndex}" value="${index + 1}"> ${option}
+                        </label>
+                    `).join('')}
+                `;
+                document.getElementById('nextQuestion').innerText = currentQuestionIndex === quizzes.length - 1 ? 'Submit Quiz' : 'Next Question';
+            } else {
+                showResults();
+            }
+        }
 
-            quizzesRef.once('value').then(quizSnapshot => {
-                let score = 0;
-                let totalQuestions = 0;
-                let detailedResults = '';
-
-                quizSnapshot.forEach(childSnapshot => {
-                    totalQuestions++;
-                    const quizData = childSnapshot.val();
-                    const selectedAnswer = document.querySelector(`input[name="quiz_${childSnapshot.key}"]:checked`);
-                    if (selectedAnswer) {
-                        const userAnswer = parseInt(selectedAnswer.value);
-                        const correctAnswer = parseInt(quizData.correctOption);
-
-                        if (userAnswer === correctAnswer) {
-                            score += 4; // Correct answer
-                            detailedResults += `<p>${quizData.question}: Correct! (+4 points)</p>`;
-                        } else {
-                            score -= 1; // Wrong answer
-                            detailedResults += `<p>${quizData.question}: Wrong! (-1 point) Correct answer was Option ${correctAnswer}</p>`;
-                        }
-                    }
-                });
-
-                const resultText = `You scored ${score} out of ${totalQuestions * 4}`;
-                document.getElementById('result').innerHTML = resultText + '<br>' + detailedResults;
-            });
+        document.getElementById('nextQuestion').onclick = function() {
+            const selectedAnswer = document.querySelector(`input[name="quiz_${currentQuestionIndex}"]:checked`);
+            if (selectedAnswer) {
+                userAnswers[currentQuestionIndex] = parseInt(selectedAnswer.value);
+                if (userAnswers[currentQuestionIndex] === quizzes[currentQuestionIndex].correctOption) {
+                    score += 4;
+                } else {
+                    score -= 1;
+                }
+                currentQuestionIndex++;
+                displayQuestion();
+            } else {
+                alert('Please select an answer before proceeding.');
+            }
         };
+
+        function showResults() {
+            const resultContainer = document.getElementById('result');
+            const correctAnswers = userAnswers.filter((answer, index) => answer === quizzes[index].correctOption).length;
+            const incorrectAnswers = totalQuestions - correctAnswers;
+            const missedAnswers = totalQuestions - userAnswers.filter(answer => answer !== undefined).length;
+            const percentage = (score / (totalQuestions * 4)) * 100;
+
+            resultContainer.innerHTML = `
+                <h2>Quiz Results</h2>
+                <p>Total Score: ${score}</p>
+                <p>Percentage: ${percentage.toFixed(2)}%</p>
+                <p>Total Questions Attempted: ${totalQuestions}</p>
+                <p>Correct Answers: ${correctAnswers}</p>
+                <p>Incorrect Answers: ${incorrectAnswers}</p>
+                <p>Missed Questions: ${missedAnswers}</p>
+                <h3>Details</h3>
+                <ul>
+                    ${quizzes.map((quiz, index) => `
+                        <li>
+                            <strong>${quiz.question}</strong><br>
+                            Your answer: Option ${userAnswers[index] || 'Not Answered'}<br>
+                            Correct answer: Option ${quiz.correctOption}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('nextQuestion').style.display = 'none';
+        }
 
         // Load quiz on page load
         window.onload = loadQuiz;
