@@ -3,64 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Quiz</title>
+    <title>Add Exam/Quiz</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Add a New Quiz</h1>
+        <h1>Add Exam/Quiz</h1>
+        <input type="text" id="examTitle" placeholder="Exam Title" required>
+        <button class="btn" onclick="addExam()">Create Exam</button>
+
+        <h2>Add Quiz to Existing Exam</h2>
+        <select id="examSelect"></select>
         <input type="text" id="quizTitle" placeholder="Quiz Title" required>
-        <div id="questionsContainer">
-            <div class="question">
-                <input type="text" placeholder="Question" required>
-                <input type="text" placeholder="Option 1" required>
-                <input type="text" placeholder="Option 2" required>
-                <input type="text" placeholder="Option 3" required>
-                <input type="text" placeholder="Option 4" required>
-                <input type="number" placeholder="Correct Option (1-4)" required>
-            </div>
-        </div>
-        <button class="btn" onclick="addQuestion()">Add Another Question</button>
-        <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
+        <textarea id="quizQuestion" placeholder="Enter your question" required></textarea>
+        <input type="text" id="option1" placeholder="Option 1" required>
+        <input type="text" id="option2" placeholder="Option 2" required>
+        <input type="text" id="option3" placeholder="Option 3" required>
+        <input type="text" id="option4" placeholder="Option 4" required>
+        <input type="number" id="correctOption" placeholder="Correct Option (1-4)" min="1" max="4" required>
+        <button class="btn" onclick="addQuiz()">Add Quiz</button>
+
+        <div id="status" class="status"></div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
-        const auth = firebase.auth();
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
+        };
 
-        function addQuestion() {
-            const questionDiv = document.createElement('div');
-            questionDiv.className = 'question';
-            questionDiv.innerHTML = `
-                <input type="text" placeholder="Question" required>
-                <input type="text" placeholder="Option 1" required>
-                <input type="text" placeholder="Option 2" required>
-                <input type="text" placeholder="Option 3" required>
-                <input type="text" placeholder="Option 4" required>
-                <input type="number" placeholder="Correct Option (1-4)" required>
-            `;
-            document.getElementById('questionsContainer').appendChild(questionDiv);
-        }
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        function submitQuiz() {
-            const userId = auth.currentUser.uid;
-            const title = document.getElementById('quizTitle').value;
-            const questions = Array.from(document.querySelectorAll('.question')).map(question => {
-                const inputs = question.querySelectorAll('input');
-                return {
-                    question: inputs[0].value,
-                    options: [inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value],
-                    correctOption: inputs[5].value
-                };
+        function addExam() {
+            const title = document.getElementById('examTitle').value;
+            if (!title) return;
+
+            const examData = { title };
+            database.ref('exams').push(examData).then(() => {
+                document.getElementById('status').innerText = 'Exam added successfully!';
+                document.getElementById('examTitle').value = '';
+                loadExams();
+            }).catch(error => {
+                document.getElementById('status').innerText = `Error: ${error.message}`;
             });
-
-            firebase.database().ref(`exams/${userId}`).push({
-                title: title,
-                questions: questions
-            }).then(() => {
-                alert('Quiz added successfully!');
-                window.location.href = 'dashboard.html';
-            }).catch(error => console.error('Error adding quiz:', error));
         }
+
+        function addQuiz() {
+            const examKey = document.getElementById('examSelect').value;
+            const title = document.getElementById('quizTitle').value;
+            const question = document.getElementById('quizQuestion').value;
+            const options = [
+                document.getElementById('option1').value,
+                document.getElementById('option2').value,
+                document.getElementById('option3').value,
+                document.getElementById('option4').value,
+            ];
+            const correctOption = document.getElementById('correctOption').value;
+
+            const quizData = { title, question, options, correctOption };
+
+            database.ref(`exams/${examKey}/quizzes`).push(quizData).then(() => {
+                document.getElementById('status').innerText = 'Quiz added successfully!';
+                clearQuizFields();
+            }).catch(error => {
+                document.getElementById('status').innerText = `Error: ${error.message}`;
+            });
+        }
+
+        function clearQuizFields() {
+            document.getElementById('quizTitle').value = '';
+            document.getElementById('quizQuestion').value = '';
+            document.getElementById('option1').value = '';
+            document.getElementById('option2').value = '';
+            document.getElementById('option3').value = '';
+            document.getElementById('option4').value = '';
+            document.getElementById('correctOption').value = '';
+        }
+
+        function loadExams() {
+            const examSelect = document.getElementById('examSelect');
+            examSelect.innerHTML = '';
+
+            database.ref('exams').once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examData = childSnapshot.val();
+                    const option = document.createElement('option');
+                    option.value = childSnapshot.key;
+                    option.innerText = examData.title;
+                    examSelect.appendChild(option);
+                });
+            });
+        }
+
+        window.onload = loadExams;
     </script>
 </body>
 </html>
