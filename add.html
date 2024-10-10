@@ -3,108 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Exam/Quiz</title>
+    <title>Add Quiz</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Add Exam/Quiz</h1>
-        <input type="text" id="examTitle" placeholder="Exam Title" required>
-        <button class="btn" onclick="addExam()">Create Exam</button>
-
-        <h2>Add Quiz to Existing Exam</h2>
-        <select id="examSelect"></select>
+        <h1>Add a New Quiz</h1>
         <input type="text" id="quizTitle" placeholder="Quiz Title" required>
-        <textarea id="quizQuestion" placeholder="Enter your question" required></textarea>
-        <input type="text" id="option1" placeholder="Option 1" required>
-        <input type="text" id="option2" placeholder="Option 2" required>
-        <input type="text" id="option3" placeholder="Option 3" required>
-        <input type="text" id="option4" placeholder="Option 4" required>
-        <input type="number" id="correctOption" placeholder="Correct Option (1-4)" min="1" max="4" required>
+        <textarea id="quizDescription" placeholder="Quiz Description" required></textarea>
         <button class="btn" onclick="addQuiz()">Add Quiz</button>
-
         <div id="status" class="status"></div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        function addExam() {
-            const title = document.getElementById('examTitle').value;
-            if (!title) return;
-
-            const examData = { title };
-            database.ref('exams').push(examData).then(() => {
-                document.getElementById('status').innerText = 'Exam added successfully!';
-                document.getElementById('examTitle').value = '';
-                loadExams();
-            }).catch(error => {
-                document.getElementById('status').innerText = `Error: ${error.message}`;
-            });
-        }
-
         function addQuiz() {
-            const examKey = document.getElementById('examSelect').value;
             const title = document.getElementById('quizTitle').value;
-            const question = document.getElementById('quizQuestion').value;
-            const options = [
-                document.getElementById('option1').value,
-                document.getElementById('option2').value,
-                document.getElementById('option3').value,
-                document.getElementById('option4').value,
-            ];
-            const correctOption = document.getElementById('correctOption').value;
+            const description = document.getElementById('quizDescription').value;
 
-            const quizData = { title, question, options, correctOption };
+            const examData = {
+                title: title,
+                description: description,
+                dateCreated: new Date().toISOString()
+            };
 
-            database.ref(`exams/${examKey}/quizzes`).push(quizData).then(() => {
-                document.getElementById('status').innerText = 'Quiz added successfully!';
-                clearQuizFields();
+            const userId = firebase.auth().currentUser.uid;
+            database.ref(`exams/${userId}/${title}`).set(examData).then(() => {
+                document.getElementById('status').innerHTML = '<div class="status success">Quiz added successfully!</div>';
             }).catch(error => {
-                document.getElementById('status').innerText = `Error: ${error.message}`;
+                document.getElementById('status').innerHTML = `<div class="status error">${error.message}</div>`;
             });
         }
-
-        function clearQuizFields() {
-            document.getElementById('quizTitle').value = '';
-            document.getElementById('quizQuestion').value = '';
-            document.getElementById('option1').value = '';
-            document.getElementById('option2').value = '';
-            document.getElementById('option3').value = '';
-            document.getElementById('option4').value = '';
-            document.getElementById('correctOption').value = '';
-        }
-
-        function loadExams() {
-            const examSelect = document.getElementById('examSelect');
-            examSelect.innerHTML = '';
-
-            database.ref('exams').once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const examData = childSnapshot.val();
-                    const option = document.createElement('option');
-                    option.value = childSnapshot.key;
-                    option.innerText = examData.title;
-                    examSelect.appendChild(option);
-                });
-            });
-        }
-
-        window.onload = loadExams;
     </script>
 </body>
 </html>
