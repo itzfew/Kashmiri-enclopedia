@@ -10,8 +10,8 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
             margin: 0;
             padding: 20px;
         }
@@ -20,24 +20,33 @@
             margin: auto;
             padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-2px);
         }
         h1 {
             text-align: center;
             color: #007BFF;
+            margin-bottom: 20px;
+            font-size: 2em;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
         }
         .exam-item {
             padding: 15px;
             margin: 10px 0;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 8px;
             background: #f9f9f9;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, box-shadow 0.3s;
         }
         .exam-item:hover {
             background: #e9ecef;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         .btn {
             background: #007BFF;
@@ -46,10 +55,16 @@
             padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.3s;
+            display: block;
+            margin: 20px auto;
+            text-align: center;
+            width: 60%;
+            font-size: 1.1em;
         }
         .btn:hover {
             background: #0056b3;
+            transform: translateY(-2px);
         }
         .profile-btn {
             position: absolute;
@@ -59,6 +74,10 @@
             border: none;
             cursor: pointer;
             font-size: 24px;
+            transition: transform 0.3s;
+        }
+        .profile-btn:hover {
+            transform: scale(1.1);
         }
         .profile-popup {
             display: none;
@@ -67,9 +86,10 @@
             right: 20px;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             padding: 20px;
             z-index: 1000;
+            width: 250px;
         }
         .popup-close {
             cursor: pointer;
@@ -85,6 +105,18 @@
         }
         .popup-btn {
             margin-top: 10px;
+            width: 100%;
+        }
+        .exam-count {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .profile-info {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #333;
         }
     </style>
 </head>
@@ -92,6 +124,7 @@
     <div class="container">
         <button class="btn" onclick="location.href='add.html'">Add Exam/Quiz</button>
         <h1>Exam List</h1>
+        <div class="exam-count" id="examCount">Loading exams...</div>
         <div id="examList"></div>
         <button class="profile-btn" onclick="toggleProfilePopup()">👤</button>
         <div class="profile-popup" id="profilePopup">
@@ -104,6 +137,7 @@
             <button class="btn popup-btn" onclick="signUp()">Sign Up</button>
             <button class="btn popup-btn" onclick="login()">Log In</button>
             <button class="btn popup-btn" onclick="loginWithGoogle()">Log In with Google</button>
+            <button class="btn popup-btn" onclick="logout()">Log Out</button>
         </div>
     </div>
 
@@ -125,9 +159,11 @@
 
         function displayExams() {
             const examList = document.getElementById('examList');
+            const examCount = document.getElementById('examCount');
             examList.innerHTML = '';
 
             database.ref('exams').once('value').then(snapshot => {
+                let count = 0;
                 snapshot.forEach(childSnapshot => {
                     const examData = childSnapshot.val();
                     const examItem = document.createElement('div');
@@ -138,7 +174,12 @@
                         window.location.href = 'play.html';
                     };
                     examList.appendChild(examItem);
+                    count++;
                 });
+                examCount.innerText = `Total Exams: ${count}`;
+            }).catch(error => {
+                examCount.innerText = 'Failed to load exams.';
+                console.error(error);
             });
         }
 
@@ -152,7 +193,12 @@
             const profileInfo = document.getElementById('profileInfo');
             const user = auth.currentUser;
             if (user) {
-                profileInfo.innerHTML = `<p>Welcome, ${user.displayName || user.email}</p>`;
+                const name = user.displayName || 'User';
+                const email = user.email;
+                profileInfo.innerHTML = `
+                    <p class="profile-info">Welcome, ${name}</p>
+                    <p class="profile-info">Email: ${email}</p>
+                `;
             } else {
                 profileInfo.innerHTML = '<p>Please log in.</p>';
             }
@@ -190,6 +236,15 @@
         function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).then(result => {
+                toggleProfilePopup();
+                updateProfileInfo();
+            }).catch(error => {
+                alert(error.message);
+            });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
                 toggleProfilePopup();
                 updateProfileInfo();
             }).catch(error => {
