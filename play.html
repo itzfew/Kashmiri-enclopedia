@@ -77,7 +77,7 @@
         .timer {
             text-align: center;
             font-size: 24px;
-            color: #dc3545; /* Bootstrap danger color */
+            color: #dc3545;
         }
     </style>
 </head>
@@ -221,13 +221,18 @@
             detailsContainer.innerHTML = `
                 <h3>Details</h3>
                 <ul>
-                    ${quizzes.map((quiz, index) => `
-                        <li class="${userAnswers[index] === quiz.correctOption ? 'correct' : userAnswers[index] === undefined ? 'missed' : 'incorrect'}">
-                            <strong>${quiz.question}</strong><br>
-                            Your answer: Option ${userAnswers[index] ? userAnswers[index] : 'Not Answered'}<br>
-                            Correct answer: Option ${quiz.correctOption}
-                        </li>
-                    `).join('')}
+                    ${quizzes.map((quiz, index) => {
+                        const userAnswer = userAnswers[index];
+                        const isCorrect = userAnswer === quiz.correctOption;
+                        const answerText = userAnswer ? `Option ${userAnswer}` : 'Not Answered';
+                        return `
+                            <li class="${isCorrect ? 'correct' : userAnswer === undefined ? 'missed' : 'incorrect'}">
+                                <strong>${quiz.question}</strong><br>
+                                Your answer: ${answerText}<br>
+                                Correct answer: Option ${quiz.correctOption}
+                            </li>
+                        `;
+                    }).join('')}
                 </ul>
             `;
             detailsContainer.style.display = 'block';
