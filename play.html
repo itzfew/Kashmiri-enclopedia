@@ -74,11 +74,17 @@
         .missed {
             color: black;
         }
+        .timer {
+            text-align: center;
+            font-size: 24px;
+            color: #dc3545; /* Bootstrap danger color */
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 id="examTitle"></h1>
+        <div class="timer" id="timer">Time Remaining: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <button class="btn" id="nextQuestion">Next Question</button>
         <div id="result" class="status"></div>
@@ -108,6 +114,7 @@
         let totalQuestions = 0;
         let userAnswers = [];
         let quizzes = [];
+        let timerInterval;
 
         function loadQuiz() {
             const examKey = localStorage.getItem('currentExam');
@@ -128,6 +135,7 @@
 
         function displayQuestion() {
             if (currentQuestionIndex < quizzes.length) {
+                startTimer();
                 const quiz = quizzes[currentQuestionIndex];
                 const quizContainer = document.getElementById('quizContainer');
                 quizContainer.innerHTML = `
@@ -143,12 +151,31 @@
                 `;
                 document.getElementById('nextQuestion').innerText = currentQuestionIndex === quizzes.length - 1 ? 'Submit Quiz' : 'Next Question';
             } else {
+                clearInterval(timerInterval);
                 showResults();
             }
         }
 
+        function startTimer() {
+            let timeLeft = 60;
+            document.getElementById('time').innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    userAnswers[currentQuestionIndex] = undefined; // Mark as missed
+                    currentQuestionIndex++;
+                    displayQuestion();
+                }
+            }, 1000);
+        }
+
         document.getElementById('nextQuestion').onclick = function() {
             const selectedAnswer = document.querySelector(`input[name="quiz_${currentQuestionIndex}"]:checked`);
+            clearInterval(timerInterval);
             if (selectedAnswer) {
                 userAnswers[currentQuestionIndex] = parseInt(selectedAnswer.value);
                 if (userAnswers[currentQuestionIndex] === quizzes[currentQuestionIndex].correctOption) {
@@ -160,13 +187,14 @@
                 displayQuestion();
             } else {
                 alert('Please select an answer before proceeding.');
+                startTimer(); // Restart timer if no answer selected
             }
         };
 
         function showResults() {
             const resultContainer = document.getElementById('result');
             const correctAnswers = userAnswers.filter((answer, index) => answer === quizzes[index].correctOption).length;
-            const incorrectAnswers = totalQuestions - correctAnswers;
+            const incorrectAnswers = userAnswers.filter((answer, index) => answer !== quizzes[index].correctOption && answer !== undefined).length;
             const missedAnswers = totalQuestions - userAnswers.filter(answer => answer !== undefined).length;
             const percentage = (score / (totalQuestions * 4)) * 100;
 
