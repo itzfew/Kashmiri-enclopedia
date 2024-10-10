@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Leaderboard</h1>
+        <div id="leaderboard"></div>
+        <button class="btn" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    </div>
+
+    <script>
+        const auth = firebase.auth();
+
+        function loadLeaderboard() {
+            const examKey = localStorage.getItem('currentExam');
+            firebase.database().ref(`leaderboard/${examKey}`).once('value').then(snapshot => {
+                const leaderboard = document.getElementById('leaderboard');
+                leaderboard.innerHTML = '';
+
+                snapshot.forEach(childSnapshot => {
+                    const record = childSnapshot.val();
+                    leaderboard.innerHTML += `<div>User ID: ${record.userId}, Score: ${record.score}, Date: ${record.date}</div>`;
+                });
+            });
+        }
+
+        window.onload = function() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    loadLeaderboard();
+                } else {
+                    window.location.href = 'index.html';
+                }
+            });
+        };
+    </script>
+</body>
+</html>
