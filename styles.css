@@ -20,6 +20,10 @@ h1 {
 }
 
 h2 {
+    color: #28a745;
+}
+
+h3 {
     color: #0056b3;
 }
 
@@ -41,16 +45,11 @@ h2 {
     background-color: #218838;
 }
 
-.exam-item, .quiz-item {
+.quiz-item {
     margin: 10px 0;
     padding: 15px;
     border: 2px solid #007BFF;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.exam-item:hover, .quiz-item:hover {
     background-color: #e9ecef;
 }
 
@@ -77,4 +76,17 @@ input[type="text"], input[type="number"], textarea {
 
 input[type="radio"] {
     margin-right: 10px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
 }
