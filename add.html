@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Exam/Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Add Exam/Quiz</h1>
+        <input type="text" id="examTitle" placeholder="Exam Title">
+        <button class="btn" onclick="addExam()">Create Exam</button>
+
+        <h2>Add Quiz to Existing Exam</h2>
+        <select id="examSelect"></select>
+        <input type="text" id="quizTitle" placeholder="Quiz Title">
+        <textarea id="quizQuestion" placeholder="Enter your question"></textarea>
+        <input type="text" id="option1" placeholder="Option 1">
+        <input type="text" id="option2" placeholder="Option 2">
+        <input type="text" id="option3" placeholder="Option 3">
+        <input type="text" id="option4" placeholder="Option 4">
+        <input type="text" id="correctOption" placeholder="Correct Option (1-4)">
+        <button class="btn" onclick="addQuiz()">Add Quiz</button>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function addExam() {
+            const title = document.getElementById('examTitle').value;
+            if (!title) return;
+
+            const examData = { title };
+            database.ref('exams').push(examData).then(() => {
+                document.getElementById('status').innerText = 'Exam added successfully!';
+                document.getElementById('examTitle').value = '';
+                loadExams();
+            }).catch(error => {
+                document.getElementById('status').innerText = `Error: ${error.message}`;
+            });
+        }
+
+        function addQuiz() {
+            const examKey = document.getElementById('examSelect').value;
+            const title = document.getElementById('quizTitle').value;
+            const question = document.getElementById('quizQuestion').value;
+            const options = [
+                document.getElementById('option1').value,
+                document.getElementById('option2').value,
+                document.getElementById('option3').value,
+                document.getElementById('option4').value,
+            ];
+            const correctOption = document.getElementById('correctOption').value;
+
+            const quizData = { title, question, options, correctOption };
+
+            database.ref(`exams/${examKey}/quizzes`).push(quizData).then(() => {
+                document.getElementById('status').innerText = 'Quiz added successfully!';
+                clearQuizFields();
+            }).catch(error => {
+                document.getElementById('status').innerText = `Error: ${error.message}`;
+            });
+        }
+
+        function clearQuizFields() {
+            document.getElementById('quizTitle').value = '';
+            document.getElementById('quizQuestion').value = '';
+            document.getElementById('option1').value = '';
+            document.getElementById('option2').value = '';
+            document.getElementById('option3').value = '';
+            document.getElementById('option4').value = '';
+            document.getElementById('correctOption').value = '';
+        }
+
+        function loadExams() {
+            const examSelect = document.getElementById('examSelect');
+            examSelect.innerHTML = '';
+
+            database.ref('exams').once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examData = childSnapshot.val();
+                    const option = document.createElement('option');
+                    option.value = childSnapshot.key;
+                    option.innerText = examData.title;
+                    examSelect.appendChild(option);
+                });
+            });
+        }
+
+        // Load exams when the page is loaded
+        window.onload = loadExams;
+    </script>
+</body>
+</html>
