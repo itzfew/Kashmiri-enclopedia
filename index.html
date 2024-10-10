@@ -3,195 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduHub Storage Browser</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #fff8e1; /* Light yellow background */
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            color: #ffab00; /* Bright yellow */
-            margin: 20px 0;
-            font-size: 2.5rem;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #ffe082; /* Light yellow border */
-        }
-        .menu-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #ffb300; /* Yellow button */
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        .menu-button:hover {
-            background-color: #ff8f00; /* Darker yellow on hover */
-        }
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-left: 10px;
-            border: 2px solid #ffb300; /* Matching border color */
-        }
-        .search-container {
-            margin: 20px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search-container input {
-            padding: 10px;
-            border: 1px solid #ffb300; /* Yellow border */
-            border-radius: 5px;
-            flex: 1;
-            margin-right: 10px;
-            transition: border-color 0.3s;
-        }
-        .search-container input:focus {
-            border-color: #ff8f00; /* Darker yellow on focus */
-            outline: none;
-        }
-        .refresh-button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #ffc107; /* Light yellow-green */
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-        }
-        .refresh-button:hover {
-            background-color: #ffa000; /* Darker yellow-green on hover */
-        }
-        #file-structure {
-            background: #fff; /* White background for file structure */
-            border-radius: 5px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        li {
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 5px;
-            transition: background 0.3s, transform 0.2s;
-            display: flex;
-            align-items: center;
-            background: #ffecb3; /* Light yellow for list items */
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-        }
-        li:hover {
-            background-color: #ffe082; /* Slightly darker yellow on hover */
-            transform: translateY(-1px);
-        }
-        .folder {
-            cursor: pointer;
-            font-weight: bold;
-            color: #ffb300; /* Matching folder color */
-            flex: 1;
-        }
-        .file {
-            color: #f57f17; /* Darker yellow for files */
-            flex: 1;
-        }
-        .path {
-            margin-top: 15px;
-            font-size: 16px;
-            color: #6c757d;
-            font-weight: bold;
-        }
-        #login-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        }
-        .modal-content button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #ffb300; /* Yellow button */
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 10px 0;
-            transition: background 0.3s;
-        }
-        .modal-content button:hover {
-            background-color: #ff8f00; /* Darker yellow on hover */
-        }
-    </style>
+    <title>Quiz Exam List</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
 </head>
 <body>
-    <div class="header">
-        <button class="menu-button" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i> Menu
-        </button>
-        <div class="profile">
-            <span id="user-name">Guest</span>
-            <img id="profile-pic" src="https://via.placeholder.com/40" alt="Profile Picture" onclick="login()">
-        </div>
-    </div>
-    <h1>EduHub Storage Browser</h1>
-    
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search files and folders..." oninput="searchFiles()">
-        <button class="refresh-button" onclick="refreshFiles()"><i class="fas fa-sync-alt"></i> Refresh</button>
-    </div>
-    <div class="path" id="current-path">Current Path: /</div>
-    <div id="file-structure"></div>
-
-    <div id="login-modal">
-        <div class="modal-content">
-            <h2>Please Log In</h2>
-            <button onclick="login()">Continue with Google</button>
-            <button onclick="closeLoginModal()">Cancel</button>
-        </div>
+    <div class="container">
+        <h1>Exam List</h1>
+        <div id="examList"></div>
+        <button class="btn" onclick="location.href='add.html'">Add Exam/Quiz</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
             authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
             projectId: "eduhub-a3762",
             storageBucket: "eduhub-a3762.appspot.com",
             messagingSenderId: "115221366217",
@@ -200,105 +28,29 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const storage = firebase.storage();
-        const auth = firebase.auth();
-        let currentPath = '';
+        const database = firebase.database();
 
-        auth.onAuthStateChanged(user => {
-            const profilePic = document.getElementById('profile-pic');
-            const userName = document.getElementById('user-name');
+        function displayExams() {
+            const examList = document.getElementById('examList');
+            examList.innerHTML = '';
 
-            if (user) {
-                userName.textContent = user.displayName || "User";
-                profilePic.src = user.photoURL || "https://via.placeholder.com/40";
-                refreshFiles(); // Refresh files after login
-            } else {
-                userName.textContent = "Guest";
-                profilePic.src = "https://via.placeholder.com/40"; // Default image
-            }
-        });
-
-        async function listFilesAndFolders(path = '') {
-            const user = auth.currentUser;
-            if (!user) {
-                openLoginModal();
-                return; // Stop execution if not logged in
-            }
-
-            const listRef = storage.ref(path);
-            const items = await listRef.listAll();
-            const structure = document.createElement('ul');
-
-            items.prefixes.forEach(folderRef => {
-                const folderItem = document.createElement('li');
-                folderItem.innerHTML = `<i class="fas fa-folder"></i> ${folderRef.name}`;
-                folderItem.className = 'folder';
-                folderItem.onclick = () => {
-                    currentPath = folderRef.fullPath;
-                    updatePathDisplay();
-                    listFilesAndFolders(folderRef.fullPath);
-                };
-                structure.appendChild(folderItem);
-            });
-
-            items.items.forEach(fileRef => {
-                fileRef.getMetadata().then(metadata => {
-                    const fileItem = document.createElement('li');
-                    fileItem.innerHTML = `<i class="fas fa-file"></i> ${fileRef.name} (${(metadata.size / 1024).toFixed(2)} KB)`;
-                    fileItem.className = 'file';
-                    fileItem.onclick = () => {
-                        fileRef.getDownloadURL().then(url => {
-                            window.open(url, '_blank');
-                        });
+            database.ref('exams').once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const examData = childSnapshot.val();
+                    const examItem = document.createElement('div');
+                    examItem.className = 'exam-item';
+                    examItem.innerText = examData.title;
+                    examItem.onclick = () => {
+                        localStorage.setItem('currentExam', childSnapshot.key);
+                        window.location.href = 'play.html';
                     };
-                    structure.appendChild(fileItem);
+                    examList.appendChild(examItem);
                 });
             });
-
-            const fileStructureDiv = document.getElementById('file-structure');
-            fileStructureDiv.innerHTML = '';
-            fileStructureDiv.appendChild(structure);
         }
 
-        function updatePathDisplay() {
-            const pathDisplay = document.getElementById('current-path');
-            pathDisplay.textContent = `Current Path: /${currentPath}`;
-        }
-
-        function openLoginModal() {
-            document.getElementById('login-modal').style.display = 'flex';
-        }
-
-        function closeLoginModal() {
-            document.getElementById('login-modal').style.display = 'none';
-        }
-
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(result => {
-                closeLoginModal();
-            }).catch(error => {
-                console.error("Error signing in: ", error);
-            });
-        }
-
-        function searchFiles() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const fileStructureDiv = document.getElementById('file-structure');
-            const items = fileStructureDiv.getElementsByTagName('li');
-
-            for (let item of items) {
-                const text = item.textContent.toLowerCase();
-                item.style.display = text.includes(query) ? 'flex' : 'none';
-            }
-        }
-
-        function refreshFiles() {
-            listFilesAndFolders(currentPath);
-        }
-
-        // Start listing from the root
-        listFilesAndFolders();
+        // Load exams on page load
+        window.onload = displayExams;
     </script>
 </body>
 </html>
