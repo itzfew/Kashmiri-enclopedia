@@ -5,10 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Play Quiz</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        #quizContainer {
+            margin: 20px 0;
+        }
+        .btn {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+        }
+        .question-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .correct {
+            background-color: #c8e6c9; /* Green */
+        }
+        .incorrect {
+            background-color: #ffcdd2; /* Red */
+        }
+        .missed {
+            background-color: #ffe0b2; /* Orange */
+        }
+        .timer {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1 id="examTitle"></h1>
+        <div id="timer" class="timer">Time Left: <span id="timeLeft">60</span> seconds</div>
         <div id="quizContainer"></div>
         <button class="btn" id="nextQuestion">Next Question</button>
         <div id="result" class="status"></div>
@@ -21,6 +80,8 @@
         let totalQuestions = 0;
         let userAnswers = [];
         let quizzes = [];
+        let timer;
+        const timePerQuestion = 60; // 60 seconds per question
 
         function loadQuiz() {
             const examKey = localStorage.getItem('currentExam');
@@ -39,7 +100,26 @@
             });
         }
 
+        function startTimer() {
+            let timeLeft = timePerQuestion;
+            document.getElementById('timeLeft').innerText = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("Time's up! Moving to the next question.");
+                    currentQuestionIndex++;
+                    displayQuestion();
+                }
+            }, 1000);
+        }
+
         function displayQuestion() {
+            clearInterval(timer); // Clear the previous timer
+            startTimer(); // Start the timer for the current question
+
             if (currentQuestionIndex < quizzes.length) {
                 const quiz = quizzes[currentQuestionIndex];
                 const quizContainer = document.getElementById('quizContainer');
@@ -47,7 +127,7 @@
                     <h3>${quiz.title}</h3>
                     <p>${quiz.question}</p>
                     ${quiz.options.map((option, index) => `
-                        <label>
+                        <label class="question-item">
                             <input type="radio" name="quiz_${currentQuestionIndex}" value="${index + 1}"> ${option}
                         </label>
                     `).join('')}
@@ -75,6 +155,7 @@
         };
 
         function showResults() {
+            clearInterval(timer); // Stop the timer
             const resultContainer = document.getElementById('result');
             const correctAnswers = userAnswers.filter((answer, index) => answer === quizzes[index].correctOption).length;
             const incorrectAnswers = totalQuestions - correctAnswers;
@@ -91,13 +172,23 @@
                 <p>Missed Questions: ${missedAnswers}</p>
                 <h3>Details</h3>
                 <ul>
-                    ${quizzes.map((quiz, index) => `
-                        <li>
-                            <strong>${quiz.question}</strong><br>
-                            Your answer: Option ${userAnswers[index] || 'Not Answered'}<br>
-                            Correct answer: Option ${quiz.correctOption}
-                        </li>
-                    `).join('')}
+                    ${quizzes.map((quiz, index) => {
+                        let statusClass = 'question-item';
+                        if (userAnswers[index] === undefined) {
+                            statusClass += ' missed';
+                        } else if (userAnswers[index] === quiz.correctOption) {
+                            statusClass += ' correct';
+                        } else {
+                            statusClass += ' incorrect';
+                        }
+                        return `
+                            <li class="${statusClass}">
+                                <strong>${quiz.question}</strong><br>
+                                Your answer: Option ${userAnswers[index] || 'Not Answered'}<br>
+                                Correct answer: Option ${quiz.correctOption}
+                            </li>
+                        `;
+                    }).join('')}
                 </ul>
             `;
             document.getElementById('quizContainer').style.display = 'none';
