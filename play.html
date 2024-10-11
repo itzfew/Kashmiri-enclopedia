@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Play</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -21,7 +20,11 @@
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
+            border: 1px solid #007BFF;
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: scale(1.02);
         }
         h1 {
             text-align: center;
@@ -29,13 +32,14 @@
             margin-bottom: 20px;
             font-weight: 700;
         }
-        .profile-icon {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            cursor: pointer;
+        .profile {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-info {
+            font-size: 1.2em;
             color: #007BFF;
+            margin: 10px 0;
         }
         .question {
             margin: 20px 0;
@@ -52,20 +56,19 @@
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
+            transition: background 0.3s, border-color 0.3s, transform 0.3s;
             margin-bottom: 15px;
             background: #e3f2fd;
-            transition: background 0.3s;
+            position: relative;
         }
         .option:hover {
             background: #bbdefb;
+            transform: translateY(-2px);
         }
-        .option.correct {
-            background: #d4edda;
-            border-color: #155724;
-        }
-        .option.incorrect {
-            background: #f8d7da;
-            border-color: #721c24;
+        .option.selected {
+            background: #007BFF;
+            color: white;
+            border-color: #0056b3;
         }
         .btn {
             background: #007BFF;
@@ -75,13 +78,14 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
+            transition: background 0.3s, transform 0.3s;
             margin-top: 15px;
             font-size: 1em;
             font-weight: 600;
-            transition: background 0.3s;
         }
         .btn:hover {
             background: #0056b3;
+            transform: scale(1.05);
         }
         .result {
             margin-top: 20px;
@@ -89,6 +93,62 @@
             text-align: center;
             font-size: 1.4em;
             color: #28a745;
+        }
+        .progress {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .progress-bar {
+            width: 100%;
+            background: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 10px;
+            background: #007BFF;
+            width: 0;
+            transition: width 0.3s;
+        }
+        .timer {
+            font-size: 1.2em;
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .detailed-results {
+            margin-top: 20px;
+            display: none;
+        }
+        .detailed-results h2 {
+            text-align: center;
+            color: #28a745;
+        }
+        .detailed-results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .detailed-results th, .detailed-results td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .detailed-results th {
+            background-color: #f2f2f2;
+            font-weight: 700;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
         }
         .chart-container {
             margin-top: 20px;
@@ -100,6 +160,36 @@
         .chart {
             width: 80%;
             height: 400px;
+        }
+        .question-list {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .question-list h2 {
+            text-align: center;
+            color: #007BFF;
+        }
+        .question-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .question-list li {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #007BFF;
+            transition: background 0.3s;
+        }
+        .question-list li.correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .question-list li.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
         }
         @media (max-width: 600px) {
             .container {
@@ -118,79 +208,118 @@
 <body>
     <div class="container">
         <h1>Play Quiz</h1>
-        <i class="fas fa-user-circle profile-icon" id="profileIcon" onclick="toggleProfile()"></i>
-        <div id="userInfo" style="display: none;"></div>
-        <div class="question" id="quizContainer"></div>
+        <div class="profile" id="userProfile" style="display: none;">
+            <div class="profile-info" id="userName"></div>
+            <button class="btn" onclick="toggleProfile()">Toggle Profile</button>
+        </div>
+        <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
+        <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
+        <div class="progress">
+            Question <span id="currentQuestionIndex">1</span> of <span id="totalQuestions"></span>
+            <div class="progress-bar">
+                <div id="progressBarFill" class="progress-bar-fill"></div>
+            </div>
+        </div>
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
         <div id="result" class="result"></div>
+        <div id="detailedResults" class="detailed-results"></div>
         <div class="chart-container" id="chartContainer" style="display: none;">
             <canvas id="scoreChart" class="chart"></canvas>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
         };
 
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const database = firebase.database();
+        const auth = firebase.auth();
 
         let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
         let results = [];
+        let timer;
+        const totalTime = 300; // Total time for the quiz
+        let user = null; // Current user object
 
-        // User Authentication
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                document.getElementById('userInfo').innerHTML = `Welcome, ${user.displayName}`;
-                document.getElementById('userInfo').style.display = 'block';
+        auth.onAuthStateChanged(userData => {
+            if (userData) {
+                user = userData;
+                document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
+                document.getElementById('userProfile').style.display = 'block';
                 loadQuestions();
             } else {
-                loginWithGoogle();
+                // Handle user sign-in or redirection
+                window.location.href = 'login.html'; // Redirect to login if not authenticated
             }
         });
 
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(result => {
-                // User signed in
-            }).catch(error => {
-                console.error("Error signing in:", error);
-            });
+        function toggleProfile() {
+            const profile = document.getElementById('userProfile');
+            profile.style.display = profile.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function getExamId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('examId');
         }
 
         function loadQuestions() {
-            const examId = 'your_exam_id'; // Replace with dynamic exam ID logic
+            const examId = getExamId();
             database.ref(`exams/${examId}/quizzes`).once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     questions.push(childSnapshot.val());
                 });
+                document.getElementById('totalQuestions').innerText = questions.length;
+                startTimer();
                 displayQuestion();
             }).catch(error => {
                 console.error('Error loading questions:', error);
             });
         }
 
+        function startTimer() {
+            let timeLeft = totalTime;
+            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert('Time is up! Submitting your quiz.');
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
         function displayQuestion() {
-            const questionData = questions[currentQuestionIndex];
-            document.getElementById('quizContainer').innerText = questionData.question;
+            const questionContainer = document.getElementById('quizContainer');
             const optionsContainer = document.getElementById('optionsContainer');
+            const questionData = questions[currentQuestionIndex];
+
+            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
             optionsContainer.innerHTML = '';
             questionData.options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
@@ -199,12 +328,15 @@
                 optionDiv.onclick = () => selectOption(index + 1);
                 optionsContainer.appendChild(optionDiv);
             });
+
+            document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
+            updateProgressBar();
         }
 
         function selectOption(selectedOption) {
             const optionElements = document.querySelectorAll('.option');
             optionElements.forEach((optionElement, index) => {
-                optionElement.classList.remove('correct', 'incorrect');
+                optionElement.classList.remove('selected');
                 if (index + 1 === selectedOption) {
                     optionElement.classList.add('selected');
                 }
@@ -214,6 +346,11 @@
                 selected: selectedOption,
                 correct: questions[currentQuestionIndex].correctOption
             };
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressBarFill').style.width = `${progress}%`;
         }
 
         function nextQuestion() {
@@ -227,12 +364,6 @@
             }
         }
 
-        function submitQuiz() {
-            calculateScore();
-            displayResults();
-            saveScoreToDatabase();
-        }
-
         function calculateScore() {
             score = results.reduce((total, result) => {
                 if (result.selected == result.correct) return total + 4; 
@@ -241,20 +372,68 @@
             }, 0);
         }
 
-        function displayResults() {
+        function submitQuiz() {
+            clearInterval(timer);
+            calculateScore();
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('optionsContainer').style.display = 'none';
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('submitButton').style.display = 'none';
+
+            showResults();
+            saveScoreToDatabase();
+        }
+
+        function showResults() {
+            const totalQuestions = questions.length;
             const correctAnswers = results.filter(result => result.selected == result.correct).length;
             const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
-            const missedQuestions = questions.length - correctAnswers - incorrectAnswers;
+            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
+            const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
 
             const resultText = `
+                Total Questions: ${totalQuestions}<br>
                 Correct Answers: ${correctAnswers}<br>
                 Incorrect Answers: ${incorrectAnswers}<br>
                 Missed Questions: ${missedQuestions}<br>
                 Total Score: ${score}<br>
+                Percentage: ${percentage.toFixed(2)}%
             `;
             document.getElementById('result').innerHTML = resultText;
 
+            showDetailedResults();
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
+            showQuestionList();
+        }
+
+        function showDetailedResults() {
+            const detailedResultsContainer = document.getElementById('detailedResults');
+            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
+            results.forEach(result => {
+                const yourAnswer = result.selected ? result.selected : 'Not Answered';
+                const correctAnswer = result.correct;
+                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
+                detailedResultsContainer.innerHTML += `
+                    <tr class="${rowClass}">
+                        <td>${result.question}</td>
+                        <td>${yourAnswer}</td>
+                        <td>${correctAnswer}</td>
+                    </tr>`;
+            });
+            detailedResultsContainer.innerHTML += `</table>`;
+            detailedResultsContainer.style.display = 'block';
+        }
+
+        function showQuestionList() {
+            const questionListContainer = document.createElement('div');
+            questionListContainer.className = 'question-list';
+            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
+            results.forEach((result, index) => {
+                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
+                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
+            });
+            questionListContainer.innerHTML += `</ul>`;
+            document.getElementById('detailedResults').appendChild(questionListContainer);
         }
 
         function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
@@ -264,8 +443,10 @@
                 data: {
                     labels: ['Correct', 'Incorrect', 'Missed'],
                     datasets: [{
+                        label: 'Quiz Results',
                         data: [correctAnswers, incorrectAnswers, missedQuestions],
                         backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        borderWidth: 1,
                     }]
                 },
                 options: {
@@ -273,7 +454,12 @@
                     plugins: {
                         legend: {
                             display: true,
+                            position: 'top',
                         },
+                        title: {
+                            display: true,
+                            text: 'Quiz Results Breakdown'
+                        }
                     }
                 }
             });
@@ -281,22 +467,23 @@
         }
 
         function saveScoreToDatabase() {
-            const userId = auth.currentUser.uid;
-            database.ref(`scores/${userId}`).push({
-                score: score,
-                date: new Date().toISOString(),
-                details: results
-            }).then(() => {
-                console.log("Score saved successfully!");
+            const userId = user.uid; // Using actual user ID
+            const examId = getExamId();
+            const scoreData = {
+                userId,
+                examId,
+                score,
+                timestamp: Date.now()
+            };
+
+            database.ref(`scores/${userId}/${examId}`).set(scoreData).then(() => {
+                console.log('Score saved successfully!');
             }).catch(error => {
-                console.error("Error saving score:", error);
+                console.error('Error saving score:', error);
             });
         }
 
-        function toggleProfile() {
-            const userInfo = document.getElementById('userInfo');
-            userInfo.style.display = userInfo.style.display === 'none' ? 'block' : 'none';
-        }
+        window.onload = loadQuestions;
     </script>
 </body>
 </html>
