@@ -8,19 +8,22 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
+            background-color: #e9ecef;
+            color: #343a40;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
             background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid #007BFF;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s;
         }
         .container:hover {
@@ -49,11 +52,11 @@
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s, transform 0.3s;
             margin-bottom: 15px;
-            background: #e3f2fd;
+            background: #f0f4f8;
             position: relative;
         }
         .option:hover {
-            background: #bbdefb;
+            background: #d1e7fd;
             transform: translateY(-2px);
         }
         .option.selected {
@@ -286,7 +289,7 @@
             const optionsContainer = document.getElementById('optionsContainer');
             const questionData = questions[currentQuestionIndex];
 
-            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
+            questionContainer.innerHTML = `<h3 class="question">${questionData.question}</h3>`;
             optionsContainer.innerHTML = '';
             questionData.options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
@@ -359,18 +362,18 @@
             const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
 
             const resultText = `
-                Total Questions: ${totalQuestions}<br>
-                Correct Answers: ${correctAnswers}<br>
-                Incorrect Answers: ${incorrectAnswers}<br>
-                Missed Questions: ${missedQuestions}<br>
-                Total Score: ${score}<br>
-                Percentage: ${percentage.toFixed(2)}%
+                <h2>Your Score</h2>
+                <div>Total Questions: ${totalQuestions}</div>
+                <div>Correct Answers: ${correctAnswers}</div>
+                <div>Incorrect Answers: ${incorrectAnswers}</div>
+                <div>Missed Questions: ${missedQuestions}</div>
+                <div>Total Score: ${score}</div>
+                <div>Percentage: ${percentage.toFixed(2)}%</div>
             `;
             document.getElementById('result').innerHTML = resultText;
 
             showDetailedResults();
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
-            showQuestionList();
         }
 
         function showDetailedResults() {
@@ -389,18 +392,6 @@
             });
             detailedResultsContainer.innerHTML += `</table>`;
             detailedResultsContainer.style.display = 'block';
-        }
-
-        function showQuestionList() {
-            const questionListContainer = document.createElement('div');
-            questionListContainer.className = 'question-list';
-            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
-            results.forEach((result, index) => {
-                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
-            });
-            questionListContainer.innerHTML += `</ul>`;
-            document.getElementById('detailedResults').appendChild(questionListContainer);
         }
 
         function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
