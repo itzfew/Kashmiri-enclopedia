@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Quiz</title>
+    <title>Quiz Play</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f0f4f8;
             color: #333;
             margin: 0;
             padding: 20px;
@@ -30,7 +30,7 @@
         }
         .question {
             margin: 20px 0;
-            font-size: 1.2em;
+            font-size: 1.4em;
             font-weight: 500;
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
@@ -39,17 +39,17 @@
             margin: 20px 0;
         }
         .option {
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s;
             margin-bottom: 15px;
-            background: #e7f1ff;
+            background: #e3f2fd;
             position: relative;
         }
         .option:hover {
-            background: #d0e7ff;
+            background: #bbdefb;
         }
         .option.selected {
             background: #007BFF;
@@ -60,7 +60,7 @@
             background: #007BFF;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
@@ -155,14 +155,14 @@
                 font-size: 0.9em;
             }
             .question {
-                font-size: 1em;
+                font-size: 1.2em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Quiz</h1>
+        <h1>Play Quiz</h1>
         <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
@@ -203,8 +203,8 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let results = [];
-        let timer; 
-        const totalTime = 300; 
+        let timer;
+        const totalTime = 300; // Total time for the quiz
 
         function getExamId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -256,9 +256,10 @@
                 const optionDiv = document.createElement('div');
                 optionDiv.className = 'option';
                 optionDiv.innerText = option;
-                optionDiv.onclick = () => selectOption(index + 1); 
+                optionDiv.onclick = () => selectOption(index + 1);
                 optionsContainer.appendChild(optionDiv);
             });
+
             document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
             updateProgressBar();
         }
