@@ -11,18 +11,23 @@
             background-color: #f0f4f8;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            height: 100vh; /* Full height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .container {
+            width: 100%;
             max-width: 900px;
-            margin: auto;
+            margin: 0 auto;
             padding: 30px;
             background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid #007BFF;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s;
-            width: 100%;
+            overflow: hidden; /* Prevent overflow */
+            position: relative; /* For full positioning */
         }
         .container:hover {
             transform: scale(1.02);
@@ -52,7 +57,6 @@
             font-weight: 500;
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
-            width: 100%;
         }
         .options {
             margin: 20px 0;
@@ -62,7 +66,7 @@
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+            transition: background 0.3s, transform 0.3s;
             margin-bottom: 15px;
             background: #e3f2fd;
             position: relative;
@@ -228,21 +232,21 @@
             </div>
         </div>
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
-        <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
-        <div id="result" class="result"></div>
-        <div id="detailedResults" class="detailed-results"></div>
+        <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
+        <div class="result" id="result" style="display: none;"></div>
+        <div class="detailed-results" id="detailedResults"></div>
         <div class="chart-container" id="chartContainer" style="display: none;">
             <canvas id="scoreChart" class="chart"></canvas>
         </div>
-        <div class="question-list" id="questionList" style="display: none;">
-            <h2>Questions List</h2>
-            <ul id="questionListContainer"></ul>
+        <div class="question-list" id="questionListContainer" style="display: none;">
+            <h2>Question List</h2>
+            <ul id="questionList"></ul>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
@@ -292,6 +296,7 @@
                 document.getElementById('quizContainer').innerText = question.question;
                 const optionsContainer = document.getElementById('optionsContainer');
                 optionsContainer.innerHTML = '';
+                
                 question.options.forEach((option, index) => {
                     const optionElement = document.createElement('div');
                     optionElement.className = 'option';
@@ -299,6 +304,7 @@
                     optionElement.onclick = () => selectOption(index);
                     optionsContainer.appendChild(optionElement);
                 });
+                
                 document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
                 document.getElementById('progressBarFill').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
                 document.getElementById('nextButton').style.display = 'block';
@@ -363,7 +369,7 @@
             const detailedResults = document.getElementById('detailedResults');
             detailedResults.innerHTML = '<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>';
             questions.forEach((question, index) => {
-                const userAnswer = document.querySelectorAll('.option')[index].innerText;
+                const userAnswer = document.querySelectorAll('.option')[index]?.innerText || 'N/A';
                 const correctAnswer = question.options[question.correctOption];
                 const resultClass = userAnswer === correctAnswer ? 'correct' : 'incorrect';
                 detailedResults.innerHTML += `<tr class="${resultClass}"><td>${question.question}</td><td>${userAnswer}</td><td>${correctAnswer}</td></tr>`;
