@@ -5,197 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Play</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 30px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border: 1px solid #007BFF;
-        }
-        h1 {
-            text-align: center;
-            color: #007BFF;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        .question {
-            margin: 20px 0;
-            font-size: 1.4em;
-            font-weight: 500;
-            border-bottom: 2px solid #007BFF;
-            padding-bottom: 10px;
-        }
-        .options {
-            margin: 20px 0;
-        }
-        .option {
-            padding: 15px;
-            border: 2px solid #007BFF;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s, border-color 0.3s;
-            margin-bottom: 15px;
-            background: #e3f2fd;
-            position: relative;
-        }
-        .option:hover {
-            background: #bbdefb;
-        }
-        .option.selected {
-            background: #007BFF;
-            color: white;
-            border-color: #0056b3;
-        }
-        .btn {
-            background: #007BFF;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
-            margin-top: 15px;
-            font-size: 1em;
-            font-weight: 600;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .result {
-            margin-top: 20px;
-            font-weight: bold;
-            text-align: center;
-            font-size: 1.4em;
-            color: #28a745;
-        }
-        .progress {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 10px;
-            background: #007BFF;
-            width: 0;
-            transition: width 0.3s;
-        }
-        .timer {
-            font-size: 1.2em;
-            color: #dc3545;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .detailed-results {
-            margin-top: 20px;
-            display: none;
-        }
-        .detailed-results h2 {
-            text-align: center;
-            color: #28a745;
-        }
-        .detailed-results table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .detailed-results th, .detailed-results td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        .detailed-results th {
-            background-color: #f2f2f2;
-            font-weight: 700;
-        }
-        .correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .chart-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .chart {
-            width: 80%;
-            height: 400px;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            .btn {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-            .question {
-                font-size: 1.2em;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Play Quiz</h1>
-        <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
-        <div id="quizContainer" class="question"></div>
-        <div class="options" id="optionsContainer"></div>
-        <div class="progress">
-            Question <span id="currentQuestionIndex">1</span> of <span id="totalQuestions"></span>
-            <div class="progress-bar">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
-        </div>
-        <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
-        <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
-        <div id="result" class="result"></div>
-        <div id="detailedResults" class="detailed-results"></div>
-        <div class="chart-container" id="chartContainer" style="display: none;">
-            <canvas id="scoreChart" class="chart"></canvas>
-        </div>
+    <div class="app-container">
+        <header>
+            <h1>Play Quiz</h1>
+        </header>
+
+        <main>
+            <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
+            <div id="quizContainer" class="question"></div>
+            <div class="options" id="optionsContainer"></div>
+            <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
+            <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
+            <div id="result" class="result"></div>
+            <div id="detailedResults" class="detailed-results"></div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Quiz Web App</p>
+        </footer>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
-        };
-
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+  authDomain: "eduhub-a3762.firebaseapp.com",
+  databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+  projectId: "eduhub-a3762",
+  storageBucket: "eduhub-a3762.appspot.com",
+  messagingSenderId: "115221366217",
+  appId: "1:115221366217:web:d6cee26ef04752d1519418",
+  measurementId: "G-X1MQF5SR3Z"
+};
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
@@ -204,7 +51,7 @@
         let score = 0;
         let results = [];
         let timer;
-        const totalTime = 300; // Total time for the quiz
+        const timePerQuestion = 60; // 1 minute per question
 
         function getExamId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -217,32 +64,10 @@
                 snapshot.forEach(childSnapshot => {
                     questions.push(childSnapshot.val());
                 });
-                document.getElementById('totalQuestions').innerText = questions.length;
-                startTimer();
                 displayQuestion();
             }).catch(error => {
                 console.error('Error loading questions:', error);
             });
-        }
-
-        function startTimer() {
-            let timeLeft = totalTime;
-            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    alert('Time is up! Submitting your quiz.');
-                    submitQuiz();
-                }
-            }, 1000);
-        }
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
         function displayQuestion() {
@@ -260,8 +85,25 @@
                 optionsContainer.appendChild(optionDiv);
             });
 
-            document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
-            updateProgressBar();
+            startTimer();
+        }
+
+        function startTimer() {
+            let timeLeft = timePerQuestion;
+            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert('Time is up for this question!');
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            return `${Math.floor(seconds / 60)}:${seconds % 60 < 10 ? '0' : ''}${seconds % 60}`;
         }
 
         function selectOption(selectedOption) {
@@ -279,40 +121,29 @@
             };
         }
 
-        function updateProgressBar() {
-            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-            document.getElementById('progressBarFill').style.width = `${progress}%`;
-        }
-
         function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
+            clearInterval(timer);
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
                 displayQuestion();
-                if (currentQuestionIndex === questions.length - 1) {
-                    document.getElementById('nextButton').style.display = 'none';
-                    document.getElementById('submitButton').style.display = 'block';
-                }
+            } else {
+                submitQuiz();
             }
-        }
-
-        function calculateScore() {
-            score = results.reduce((total, result) => {
-                if (result.selected == result.correct) return total + 4; 
-                if (result.selected) return total - 1; 
-                return total; 
-            }, 0);
         }
 
         function submitQuiz() {
             clearInterval(timer);
             calculateScore();
-            document.getElementById('quizContainer').style.display = 'none';
-            document.getElementById('optionsContainer').style.display = 'none';
-            document.getElementById('nextButton').style.display = 'none';
-            document.getElementById('submitButton').style.display = 'none';
-
             showResults();
             saveScoreToDatabase();
+        }
+
+        function calculateScore() {
+            score = results.reduce((total, result) => {
+                if (result.selected == result.correct) return total + 4;
+                if (result.selected) return total - 1;
+                return total;
+            }, 0);
         }
 
         function showResults() {
@@ -323,22 +154,22 @@
             const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
 
             const resultText = `
-                Total Questions: ${totalQuestions}<br>
-                Correct Answers: ${correctAnswers}<br>
-                Incorrect Answers: ${incorrectAnswers}<br>
-                Missed Questions: ${missedQuestions}<br>
-                Total Score: ${score}<br>
-                Percentage: ${percentage.toFixed(2)}%
+                <h2>Your Results</h2>
+                <p>Total Questions: ${totalQuestions}</p>
+                <p>Correct Answers: ${correctAnswers}</p>
+                <p>Incorrect Answers: ${incorrectAnswers}</p>
+                <p>Missed Questions: ${missedQuestions}</p>
+                <p>Total Score: ${score}</p>
+                <p>Percentage: ${percentage.toFixed(2)}%</p>
             `;
             document.getElementById('result').innerHTML = resultText;
 
             showDetailedResults();
-            showChart(correctAnswers, incorrectAnswers, missedQuestions);
         }
 
         function showDetailedResults() {
             const detailedResultsContainer = document.getElementById('detailedResults');
-            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
+            detailedResultsContainer.innerHTML = `<h3>Detailed Results</h3><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
             results.forEach(result => {
                 const yourAnswer = result.selected ? result.selected : 'Not Answered';
                 const correctAnswer = result.correct;
@@ -352,36 +183,6 @@
             });
             detailedResultsContainer.innerHTML += `</table>`;
             detailedResultsContainer.style.display = 'block';
-        }
-
-        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Correct', 'Incorrect', 'Missed'],
-                    datasets: [{
-                        label: 'Quiz Results',
-                        data: [correctAnswers, incorrectAnswers, missedQuestions],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
-                        }
-                    }
-                }
-            });
-            document.getElementById('chartContainer').style.display = 'block';
         }
 
         function saveScoreToDatabase() {
