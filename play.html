@@ -3,267 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Quiz Application</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #eef2f3;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background-color: #004d80;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 30px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            flex-grow: 1;
-        }
-        h1 {
-            color: #004d80;
-            margin-bottom: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .profile {
-            background: #f7f9fc;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .profile-info {
-            font-size: 1.4em;
-            color: #004d80;
-            margin: 10px 0;
-        }
-        .question {
-            margin: 20px 0;
-            font-size: 1.5em;
-            font-weight: 500;
-            border-bottom: 2px solid #004d80;
-            padding-bottom: 10px;
-        }
-        .options {
-            margin: 20px 0;
-        }
-        .option {
-            padding: 15px;
-            border: 2px solid #004d80;
-            border-radius: 5px;
-            cursor: pointer;
-            background: #e3f2fd;
-            transition: background 0.3s, border-color 0.3s, transform 0.3s;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        .option:hover {
-            background: #bbdefb;
-            transform: translateY(-2px);
-        }
-        .option.selected {
-            background: #004d80;
-            color: white;
-            border-color: #003366;
-        }
-        .btn {
-            background: #004d80;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s, transform 0.3s;
-            margin-top: 15px;
-            font-size: 1em;
-            font-weight: 600;
-        }
-        .btn:hover {
-            background: #003366;
-            transform: scale(1.05);
-        }
-        .result {
-            margin-top: 20px;
-            font-weight: bold;
-            text-align: center;
-            font-size: 1.4em;
-            color: #28a745;
-        }
-        .progress {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 10px;
-            background: #004d80;
-            width: 0;
-            transition: width 0.3s;
-        }
-        .timer {
-            font-size: 1.2em;
-            color: #dc3545;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .detailed-results {
-            margin-top: 20px;
-            display: none;
-        }
-        .detailed-results h2 {
-            text-align: center;
-            color: #28a745;
-            margin-bottom: 10px;
-        }
-        .detailed-results table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .detailed-results th, .detailed-results td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        .detailed-results th {
-            background-color: #f2f2f2;
-            font-weight: 700;
-        }
-        .correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .chart-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .chart {
-            width: 80%;
-            height: 400px;
-        }
-        .question-list {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #004d80;
-            border-radius: 5px;
-            background: #f9f9f9;
-        }
-        .question-list h2 {
-            text-align: center;
-            color: #004d80;
-        }
-        .question-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .question-list li {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #004d80;
-            transition: background 0.3s;
-        }
-        .question-list li.correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .question-list li.incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            .btn {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-            .question {
-                font-size: 1.2em;
-            }
-            .profile-info {
-                font-size: 1.2em;
-            }
-            .timer {
-                font-size: 1em;
-            }
-            .result {
-                font-size: 1.2em;
-            }
-            .question-list h2 {
-                font-size: 1.5em;
-            }
-            .option {
-                font-size: 1em;
-            }
-        }
-    </style>
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Premium Quiz Application</h1>
-    </header>
-    <div class="container">
-        <div class="profile" id="userProfile" style="display: none;">
-            <div class="profile-info" id="userName"></div>
-            <button class="btn" onclick="toggleProfile()">Toggle Profile</button>
-        </div>
-        <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
-        <div id="quizContainer" class="question"></div>
-        <div class="options" id="optionsContainer"></div>
-        <div class="progress">
-            Question <span id="currentQuestionIndex">1</span> of <span id="totalQuestions"></span>
-            <div class="progress-bar">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
-        </div>
-        <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
-        <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
-        <div id="result" class="result"></div>
-        <div id="detailedResults" class="detailed-results"></div>
-        <div class="chart-container" id="chartContainer" style="display: none;">
-            <canvas id="scoreChart" class="chart"></canvas>
-        </div>
+    <div id="userProfile" style="display: none;">
+        <span id="userName"></span>
+        <button onclick="toggleProfile()">Toggle Profile</button>
     </div>
+    <div id="quizContainer"></div>
+    <div id="optionsContainer"></div>
+    <div>
+        <span id="currentQuestionIndex"></span> / <span id="totalQuestions"></span>
+        <button id="nextButton" onclick="nextQuestion()">Next</button>
+        <button id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
+    </div>
+    <div id="result"></div>
+    <div id="detailedResults" style="display: none;"></div>
+    <div id="chartContainer" style="display: none;">
+        <canvas id="scoreChart"></canvas>
+    </div>
+    <div id="timeLeft"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
@@ -286,7 +50,7 @@
         let results = [];
         let timer;
         const totalTime = 300; // Total time for the quiz
-        let user = null; // Current user object
+        let user = null;
 
         auth.onAuthStateChanged(userData => {
             if (userData) {
@@ -295,7 +59,6 @@
                 document.getElementById('userProfile').style.display = 'block';
                 loadQuestions();
             } else {
-                // Redirect to login if not authenticated
                 window.location.href = 'login.html';
             }
         });
@@ -312,13 +75,18 @@
 
         function loadQuestions() {
             const examId = getExamId();
+            questions = []; // Clear previous questions
             database.ref(`exams/${examId}/quizzes`).once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     questions.push(childSnapshot.val());
                 });
                 document.getElementById('totalQuestions').innerText = questions.length;
-                startTimer();
-                displayQuestion();
+                if (questions.length > 0) {
+                    startTimer();
+                    displayQuestion();
+                } else {
+                    alert('No questions available for this exam.');
+                }
             }).catch(error => {
                 console.error('Error loading questions:', error);
             });
@@ -457,63 +225,41 @@
         function showQuestionList() {
             const questionListContainer = document.createElement('div');
             questionListContainer.className = 'question-list';
-            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
-            results.forEach((result, index) => {
-                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.innerText = `Q${index + 1}: ${question.question}`;
+                questionListContainer.appendChild(questionDiv);
             });
-            questionListContainer.innerHTML += `</ul>`;
-            document.getElementById('detailedResults').appendChild(questionListContainer);
+            document.getElementById('result').appendChild(questionListContainer);
         }
 
-        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
+        function showChart(correct, incorrect, missed) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
+            new Chart(ctx, {
+                type: 'pie',
                 data: {
                     labels: ['Correct', 'Incorrect', 'Missed'],
                     datasets: [{
-                        label: 'Quiz Results',
-                        data: [correctAnswers, incorrectAnswers, missedQuestions],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
-                        borderWidth: 1,
+                        data: [correct, incorrect, missed],
+                        backgroundColor: ['green', 'red', 'gray']
                     }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
-                        }
-                    }
                 }
             });
             document.getElementById('chartContainer').style.display = 'block';
         }
 
         function saveScoreToDatabase() {
-            const userId = user.uid; // Using actual user ID
+            const userId = user.uid;
             const examId = getExamId();
-            const scoreData = {
-                userId,
-                examId,
-                score,
-                timestamp: Date.now()
-            };
-
-            database.ref(`scores/${userId}/${examId}`).set(scoreData).then(() => {
+            database.ref(`scores/${userId}/${examId}`).set({
+                score: score,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
                 console.log('Score saved successfully!');
             }).catch(error => {
                 console.error('Error saving score:', error);
             });
         }
-
-        window.onload = loadQuestions;
     </script>
 </body>
 </html>
