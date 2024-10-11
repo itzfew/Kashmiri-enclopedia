@@ -60,6 +60,8 @@
             text-align: center;
             margin: 10px 0;
             font-weight: bold;
+        }
+        .status.success {
             color: #28a745;
         }
         .status.error {
@@ -82,7 +84,7 @@
         <button class="btn" onclick="addExam()">Create Exam</button>
 
         <h2>Add Quiz to Existing Exam</h2>
-        <select id="examSelect"></select>
+        <select id="examSelect" required></select>
         <input type="text" id="quizTitle" placeholder="Quiz Title" required>
         <textarea id="quizQuestion" placeholder="Enter your question" required></textarea>
         <input type="text" id="option1" placeholder="Option 1" required>
@@ -112,24 +114,63 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
+        function showStatus(message, isSuccess) {
+            const statusElement = document.getElementById('status');
+            statusElement.innerText = message;
+            statusElement.classList.toggle('success', isSuccess);
+            statusElement.classList.toggle('error', !isSuccess);
+            setTimeout(() => { statusElement.innerText = ''; }, 3000);
+        }
+
+        function validateExamTitle(title) {
+            return title.trim() !== '';
+        }
+
+        function validateQuizFields() {
+            const title = document.getElementById('quizTitle').value.trim();
+            const question = document.getElementById('quizQuestion').value.trim();
+            const options = [
+                document.getElementById('option1').value.trim(),
+                document.getElementById('option2').value.trim(),
+                document.getElementById('option3').value.trim(),
+                document.getElementById('option4').value.trim(),
+            ];
+            const correctOption = document.getElementById('correctOption').value;
+
+            if (!title || !question || options.some(opt => opt === '') || !correctOption) {
+                alert('Please fill out all fields.');
+                return false;
+            }
+            if (correctOption < 1 || correctOption > 4) {
+                alert('Correct option must be between 1 and 4.');
+                return false;
+            }
+            return true;
+        }
+
         function addExam() {
             const title = document.getElementById('examTitle').value;
-            if (!title) return;
+            if (!validateExamTitle(title)) {
+                alert('Exam title cannot be empty!');
+                return;
+            }
 
+            showStatus('Loading...', false);
             const examData = { title };
             database.ref('exams').push(examData).then(() => {
-                document.getElementById('status').innerText = 'Exam added successfully!';
-                document.getElementById('status').classList.remove('error');
+                showStatus('Exam added successfully!', true);
                 document.getElementById('examTitle').value = '';
                 loadExams();
             }).catch(error => {
-                document.getElementById('status').innerText = `Error: ${error.message}`;
-                document.getElementById('status').classList.add('error');
+                showStatus(`Error: ${error.message}`, false);
             });
         }
 
         function addQuiz() {
             const examKey = document.getElementById('examSelect').value;
+            if (!validateQuizFields()) return;
+
+            showStatus('Loading...', false);
             const title = document.getElementById('quizTitle').value;
             const question = document.getElementById('quizQuestion').value;
             const options = [
@@ -143,12 +184,10 @@
             const quizData = { title, question, options, correctOption };
 
             database.ref(`exams/${examKey}/quizzes`).push(quizData).then(() => {
-                document.getElementById('status').innerText = 'Quiz added successfully!';
-                document.getElementById('status').classList.remove('error');
+                showStatus('Quiz added successfully!', true);
                 clearQuizFields();
             }).catch(error => {
-                document.getElementById('status').innerText = `Error: ${error.message}`;
-                document.getElementById('status').classList.add('error');
+                showStatus(`Error: ${error.message}`, false);
             });
         }
 
@@ -174,6 +213,8 @@
                     option.innerText = examData.title;
                     examSelect.appendChild(option);
                 });
+            }).catch(error => {
+                showStatus(`Error loading exams: ${error.message}`, false);
             });
         }
 
