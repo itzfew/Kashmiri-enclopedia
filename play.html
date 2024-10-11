@@ -3,28 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Quiz Application</title>
+    <title>Premium Quiz Play</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #eef2f3;
+            background-color: #f0f4f8;
             color: #333;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background-color: #004d80;
-            color: white;
             padding: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         .container {
             max-width: 900px;
@@ -33,32 +20,36 @@
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            flex-grow: 1;
+            border: 1px solid #007BFF;
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: scale(1.02);
         }
         h1 {
-            color: #004d80;
+            text-align: center;
+            color: #007BFF;
             margin-bottom: 20px;
             font-weight: 700;
-            text-transform: uppercase;
         }
         .profile {
-            background: #f7f9fc;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
             margin-bottom: 20px;
+            border: 2px solid #007BFF;
+            border-radius: 10px;
+            padding: 15px;
+            background: #e3f2fd;
         }
         .profile-info {
-            font-size: 1.4em;
-            color: #004d80;
+            font-size: 1.2em;
+            color: #007BFF;
             margin: 10px 0;
         }
         .question {
             margin: 20px 0;
-            font-size: 1.5em;
+            font-size: 1.4em;
             font-weight: 500;
-            border-bottom: 2px solid #004d80;
+            border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
         }
         .options {
@@ -66,25 +57,25 @@
         }
         .option {
             padding: 15px;
-            border: 2px solid #004d80;
+            border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
-            background: #e3f2fd;
             transition: background 0.3s, border-color 0.3s, transform 0.3s;
             margin-bottom: 15px;
-            font-weight: 500;
+            background: #e3f2fd;
+            position: relative;
         }
         .option:hover {
             background: #bbdefb;
             transform: translateY(-2px);
         }
         .option.selected {
-            background: #004d80;
+            background: #007BFF;
             color: white;
-            border-color: #003366;
+            border-color: #0056b3;
         }
         .btn {
-            background: #004d80;
+            background: #007BFF;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -97,7 +88,7 @@
             font-weight: 600;
         }
         .btn:hover {
-            background: #003366;
+            background: #0056b3;
             transform: scale(1.05);
         }
         .result {
@@ -120,7 +111,7 @@
         }
         .progress-bar-fill {
             height: 10px;
-            background: #004d80;
+            background: #007BFF;
             width: 0;
             transition: width 0.3s;
         }
@@ -137,7 +128,6 @@
         .detailed-results h2 {
             text-align: center;
             color: #28a745;
-            margin-bottom: 10px;
         }
         .detailed-results table {
             width: 100%;
@@ -178,13 +168,13 @@
         .question-list {
             margin-top: 20px;
             padding: 10px;
-            border: 1px solid #004d80;
+            border: 1px solid #007BFF;
             border-radius: 5px;
             background: #f9f9f9;
         }
         .question-list h2 {
             text-align: center;
-            color: #004d80;
+            color: #007BFF;
         }
         .question-list ul {
             list-style-type: none;
@@ -194,7 +184,7 @@
             margin: 10px 0;
             padding: 10px;
             border-radius: 5px;
-            border: 1px solid #004d80;
+            border: 1px solid #007BFF;
             transition: background 0.3s;
         }
         .question-list li.correct {
@@ -220,10 +210,8 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>Premium Quiz Application</h1>
-    </header>
     <div class="container">
+        <h1>Play Quiz</h1>
         <div class="profile" id="userProfile" style="display: none;">
             <div class="profile-info" id="userName"></div>
             <button class="btn" onclick="toggleProfile()">Toggle Profile</button>
@@ -257,223 +245,139 @@
             databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
             projectId: "eduhub-a3762",
             storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "379405101285",
-            appId: "1:379405101285:web:b30b3283037317fbe97880"
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
         };
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const auth = firebase.auth();
-
-        let questions = [];
+        let user;
         let currentQuestionIndex = 0;
         let score = 0;
-        let results = [];
-        let timer;
-        const totalTime = 300; // Total time for the quiz
-        let user = null; // Current user object
+        let questions = [];
+        let timerInterval;
+        const TIME_LIMIT = 60; // 60 seconds
+        let timeLeft = TIME_LIMIT;
 
         auth.onAuthStateChanged(userData => {
             if (userData) {
                 user = userData;
                 document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
                 document.getElementById('userProfile').style.display = 'block';
-                loadQuestions();
+                loadQuestions(); // Load questions without redirecting
+                startTimer();
             } else {
-                // Handle user sign-in or redirection
-                window.location.href = 'login.html'; // Redirect to login if not authenticated
+                // Optionally show a login button or redirect if not authenticated
+                // window.location.href = 'login.html'; // Redirect to login if not authenticated
             }
         });
 
-        function toggleProfile() {
-            const profile = document.getElementById('userProfile');
-            profile.style.display = profile.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function getExamId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('examId');
-        }
-
         function loadQuestions() {
-            const examId = getExamId();
-            database.ref(`exams/${examId}/quizzes`).once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    questions.push(childSnapshot.val());
-                });
+            database.ref('questions').once('value', snapshot => {
+                questions = snapshot.val();
                 document.getElementById('totalQuestions').innerText = questions.length;
-                startTimer();
                 displayQuestion();
-            }).catch(error => {
-                console.error('Error loading questions:', error);
             });
-        }
-
-        function startTimer() {
-            let timeLeft = totalTime;
-            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    alert('Time is up! Submitting your quiz.');
-                    submitQuiz();
-                }
-            }, 1000);
-        }
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
         function displayQuestion() {
-            const questionContainer = document.getElementById('quizContainer');
-            const optionsContainer = document.getElementById('optionsContainer');
-            const questionData = questions[currentQuestionIndex];
-
-            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
-            optionsContainer.innerHTML = '';
-            questionData.options.forEach((option, index) => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'option';
-                optionDiv.innerText = option;
-                optionDiv.onclick = () => selectOption(index + 1);
-                optionsContainer.appendChild(optionDiv);
-            });
-
-            document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
-            updateProgressBar();
-        }
-
-        function selectOption(selectedOption) {
-            const optionElements = document.querySelectorAll('.option');
-            optionElements.forEach((optionElement, index) => {
-                optionElement.classList.remove('selected');
-                if (index + 1 === selectedOption) {
-                    optionElement.classList.add('selected');
-                }
-            });
-            results[currentQuestionIndex] = {
-                question: questions[currentQuestionIndex].question,
-                selected: selectedOption,
-                correct: questions[currentQuestionIndex].correctOption
-            };
-        }
-
-        function updateProgressBar() {
-            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-            document.getElementById('progressBarFill').style.width = `${progress}%`;
-        }
-
-        function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                displayQuestion();
-                if (currentQuestionIndex === questions.length - 1) {
-                    document.getElementById('nextButton').style.display = 'none';
-                    document.getElementById('submitButton').style.display = 'block';
-                }
+            if (currentQuestionIndex < questions.length) {
+                const question = questions[currentQuestionIndex];
+                document.getElementById('quizContainer').innerText = question.question;
+                const optionsContainer = document.getElementById('optionsContainer');
+                optionsContainer.innerHTML = '';
+                question.options.forEach((option, index) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option';
+                    optionElement.innerText = option;
+                    optionElement.onclick = () => selectOption(index);
+                    optionsContainer.appendChild(optionElement);
+                });
+                document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
+                document.getElementById('progressBarFill').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+                document.getElementById('nextButton').style.display = 'block';
+                document.getElementById('submitButton').style.display = 'none';
+            } else {
+                endQuiz();
             }
         }
 
-        function calculateScore() {
-            score = results.reduce((total, result) => {
-                if (result.selected == result.correct) return total + 4; 
-                if (result.selected) return total - 1; 
-                return total; 
-            }, 0);
+        function selectOption(index) {
+            const selectedOption = document.querySelectorAll('.option')[index];
+            selectedOption.classList.add('selected');
+            if (questions[currentQuestionIndex].correctOption === index) {
+                score++;
+            }
+            Array.from(document.querySelectorAll('.option')).forEach((option, idx) => {
+                option.onclick = null; // Disable further clicks
+                if (questions[currentQuestionIndex].correctOption === idx) {
+                    option.classList.add('correct');
+                } else {
+                    option.classList.add('incorrect');
+                }
+            });
+            document.getElementById('nextButton').style.display = 'none';
+            document.getElementById('submitButton').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
         }
 
         function submitQuiz() {
-            clearInterval(timer);
-            calculateScore();
+            endQuiz();
+        }
+
+        function endQuiz() {
+            clearInterval(timerInterval);
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('optionsContainer').style.display = 'none';
             document.getElementById('nextButton').style.display = 'none';
             document.getElementById('submitButton').style.display = 'none';
+            const result = `You scored ${score} out of ${questions.length}`;
+            document.getElementById('result').innerText = result;
 
-            showResults();
-            saveScoreToDatabase();
-        }
-
-        function showResults() {
-            const totalQuestions = questions.length;
-            const correctAnswers = results.filter(result => result.selected == result.correct).length;
-            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
-            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
-            const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
-
-            const resultText = `
-                Total Questions: ${totalQuestions}<br>
-                Correct Answers: ${correctAnswers}<br>
-                Incorrect Answers: ${incorrectAnswers}<br>
-                Missed Questions: ${missedQuestions}<br>
-                Total Score: ${score}<br>
-                Percentage: ${percentage.toFixed(2)}%
-            `;
-            document.getElementById('result').innerHTML = resultText;
-
+            // Show detailed results
             showDetailedResults();
-            showChart(correctAnswers, incorrectAnswers, missedQuestions);
-            showQuestionList();
+            // Show score chart
+            showScoreChart();
+
+            document.getElementById('detailedResults').style.display = 'block';
         }
 
         function showDetailedResults() {
-            const detailedResultsContainer = document.getElementById('detailedResults');
-            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
-            results.forEach(result => {
-                const yourAnswer = result.selected ? result.selected : 'Not Answered';
-                const correctAnswer = result.correct;
-                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                detailedResultsContainer.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td>${result.question}</td>
-                        <td>${yourAnswer}</td>
-                        <td>${correctAnswer}</td>
-                    </tr>`;
+            const detailedResults = document.getElementById('detailedResults');
+            detailedResults.innerHTML = '<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>';
+            questions.forEach((question, index) => {
+                const userAnswer = document.querySelectorAll('.option')[index].innerText;
+                const correctAnswer = question.options[question.correctOption];
+                const resultClass = userAnswer === correctAnswer ? 'correct' : 'incorrect';
+                detailedResults.innerHTML += `<tr class="${resultClass}"><td>${question.question}</td><td>${userAnswer}</td><td>${correctAnswer}</td></tr>`;
             });
-            detailedResultsContainer.innerHTML += `</table>`;
-            detailedResultsContainer.style.display = 'block';
+            detailedResults.innerHTML += '</table>';
         }
 
-        function showQuestionList() {
-            const questionListContainer = document.createElement('div');
-            questionListContainer.className = 'question-list';
-            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
-            results.forEach((result, index) => {
-                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
-            });
-            questionListContainer.innerHTML += `</ul>`;
-            document.getElementById('detailedResults').appendChild(questionListContainer);
-        }
-
-        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
+        function showScoreChart() {
             const ctx = document.getElementById('scoreChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
+            const scoreChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Correct', 'Incorrect', 'Missed'],
+                    labels: ['Your Score', 'Total Questions'],
                     datasets: [{
-                        label: 'Quiz Results',
-                        data: [correctAnswers, incorrectAnswers, missedQuestions],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        label: 'Score',
+                        data: [score, questions.length],
+                        backgroundColor: ['#007BFF', '#e3f2fd'],
+                        borderColor: ['#0056b3', '#bbb'],
                         borderWidth: 1,
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
@@ -481,24 +385,23 @@
             document.getElementById('chartContainer').style.display = 'block';
         }
 
-        function saveScoreToDatabase() {
-            const userId = user.uid; // Using actual user ID
-            const examId = getExamId();
-            const scoreData = {
-                userId,
-                examId,
-                score,
-                timestamp: Date.now()
-            };
-
-            database.ref(`scores/${userId}/${examId}`).set(scoreData).then(() => {
-                console.log('Score saved successfully!');
-            }).catch(error => {
-                console.error('Error saving score:', error);
-            });
+        function startTimer() {
+            timeLeft = TIME_LIMIT;
+            document.getElementById('timeLeft').innerText = timeLeft;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endQuiz();
+                }
+            }, 1000);
         }
 
-        window.onload = loadQuestions;
+        function toggleProfile() {
+            const profileDiv = document.getElementById('userProfile');
+            profileDiv.style.display = profileDiv.style.display === 'none' ? 'block' : 'none';
+        }
     </script>
 </body>
 </html>
