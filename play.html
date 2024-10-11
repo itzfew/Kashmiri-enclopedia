@@ -11,19 +11,7 @@
             background-color: #f0f4f8;
             color: #333;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background-color: #007BFF;
-            color: white;
             padding: 20px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
         }
         .container {
             max-width: 900px;
@@ -33,26 +21,21 @@
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border: 1px solid #007BFF;
-            flex-grow: 1;
-            position: relative;
         }
         h1 {
+            text-align: center;
             color: #007BFF;
             margin-bottom: 20px;
             font-weight: 700;
         }
-        .profile {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .profile-info {
-            font-size: 1.2em;
+        .user-profile {
+            text-align: right;
+            font-size: 1.1em;
             color: #007BFF;
-            margin: 10px 0;
         }
         .question {
             margin: 20px 0;
-            font-size: 1.5em;
+            font-size: 1.4em;
             font-weight: 500;
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
@@ -65,18 +48,16 @@
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 15px;
             background: #e3f2fd;
             transition: background 0.3s, border-color 0.3s, transform 0.3s;
-            margin-bottom: 15px;
         }
         .option:hover {
             background: #bbdefb;
-            transform: translateY(-2px);
         }
         .option.selected {
             background: #007BFF;
             color: white;
-            border-color: #0056b3;
         }
         .btn {
             background: #007BFF;
@@ -86,14 +67,12 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s, transform 0.3s;
             margin-top: 15px;
             font-size: 1em;
             font-weight: 600;
         }
         .btn:hover {
             background: #0056b3;
-            transform: scale(1.05);
         }
         .result {
             margin-top: 20px;
@@ -101,29 +80,6 @@
             text-align: center;
             font-size: 1.4em;
             color: #28a745;
-        }
-        .progress {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 10px;
-            background: #007BFF;
-            width: 0;
-            transition: width 0.3s;
-        }
-        .timer {
-            font-size: 1.2em;
-            color: #dc3545;
-            text-align: center;
-            margin: 20px 0;
         }
         .detailed-results {
             margin-top: 20px;
@@ -214,22 +170,14 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>Quiz Application</h1>
-    </header>
     <div class="container">
-        <div class="profile" id="userProfile" style="display: none;">
-            <div class="profile-info" id="userName"></div>
-            <button class="btn" onclick="toggleProfile()">Toggle Profile</button>
-        </div>
+        <h1>Play Quiz</h1>
+        <div class="user-profile" id="userName">Welcome!</div>
         <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
         <div class="progress">
             Question <span id="currentQuestionIndex">1</span> of <span id="totalQuestions"></span>
-            <div class="progress-bar">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
         </div>
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
@@ -241,8 +189,8 @@
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
@@ -260,29 +208,29 @@
         const database = firebase.database();
         const auth = firebase.auth();
 
+        let user = null;
         let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
         let results = [];
         let timer;
         const totalTime = 300; // Total time for the quiz
-        let user = null; // Current user object
 
         auth.onAuthStateChanged(userData => {
             if (userData) {
                 user = userData;
                 document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
-                document.getElementById('userProfile').style.display = 'block';
                 loadQuestions();
             } else {
-                // Handle user sign-in or redirection
-                window.location.href = 'login.html'; // Redirect to login if not authenticated
+                signIn();
             }
         });
 
-        function toggleProfile() {
-            const profile = document.getElementById('userProfile');
-            profile.style.display = profile.style.display === 'block' ? 'none' : 'block';
+        function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => {
+                console.error('Error during sign-in:', error);
+            });
         }
 
         function getExamId() {
@@ -312,7 +260,6 @@
                 document.getElementById('timeLeft').innerText = formatTime(timeLeft);
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    alert('Time is up! Submitting your quiz.');
                     submitQuiz();
                 }
             }, 1000);
@@ -320,180 +267,133 @@
 
         function formatTime(seconds) {
             const minutes = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
         }
 
         function displayQuestion() {
-            const questionContainer = document.getElementById('quizContainer');
+            const questionElement = document.getElementById('quizContainer');
             const optionsContainer = document.getElementById('optionsContainer');
-            const questionData = questions[currentQuestionIndex];
+            const currentQuestion = questions[currentQuestionIndex];
 
-            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
+            questionElement.innerText = currentQuestion.question;
             optionsContainer.innerHTML = '';
-            questionData.options.forEach((option, index) => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'option';
-                optionDiv.innerText = option;
-                optionDiv.onclick = () => selectOption(index + 1);
-                optionsContainer.appendChild(optionDiv);
+
+            currentQuestion.options.forEach((option, index) => {
+                const optionButton = document.createElement('div');
+                optionButton.className = 'option';
+                optionButton.innerText = option;
+                optionButton.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionButton);
             });
 
             document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
-            updateProgressBar();
+            document.getElementById('nextButton').style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'block';
+            document.getElementById('submitButton').style.display = currentQuestionIndex === questions.length - 1 ? 'block' : 'none';
         }
 
-        function selectOption(selectedOption) {
-            const optionElements = document.querySelectorAll('.option');
-            optionElements.forEach((optionElement, index) => {
-                optionElement.classList.remove('selected');
-                if (index + 1 === selectedOption) {
-                    optionElement.classList.add('selected');
+        function selectOption(selectedIndex) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+
+            options.forEach((option, index) => {
+                option.classList.remove('selected');
+                if (index === selectedIndex) {
+                    option.classList.add('selected');
                 }
             });
-            results[currentQuestionIndex] = {
-                question: questions[currentQuestionIndex].question,
-                selected: selectedOption,
-                correct: questions[currentQuestionIndex].correctOption
-            };
-        }
 
-        function updateProgressBar() {
-            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
-            document.getElementById('progressBarFill').style.width = `${progress}%`;
-        }
-
-        function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                displayQuestion();
-                if (currentQuestionIndex === questions.length - 1) {
-                    document.getElementById('nextButton').style.display = 'none';
-                    document.getElementById('submitButton').style.display = 'block';
-                }
+            if (currentQuestion.correctIndex === selectedIndex) {
+                score++;
+                results[currentQuestionIndex] = { question: currentQuestion.question, correct: true };
+            } else {
+                results[currentQuestionIndex] = { question: currentQuestion.question, correct: false };
             }
         }
 
-        function calculateScore() {
-            score = results.reduce((total, result) => {
-                if (result.selected == result.correct) return total + 4; 
-                if (result.selected) return total - 1; 
-                return total; 
-            }, 0);
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
         }
 
         function submitQuiz() {
             clearInterval(timer);
-            calculateScore();
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('optionsContainer').style.display = 'none';
             document.getElementById('nextButton').style.display = 'none';
             document.getElementById('submitButton').style.display = 'none';
-
-            showResults();
-            saveScoreToDatabase();
+            displayResults();
         }
 
-        function showResults() {
-            const totalQuestions = questions.length;
-            const correctAnswers = results.filter(result => result.selected == result.correct).length;
-            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
-            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
-            const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
+        function displayResults() {
+            const resultElement = document.getElementById('result');
+            const detailedResultsElement = document.getElementById('detailedResults');
+            const scorePercentage = (score / questions.length) * 100;
 
-            const resultText = `
-                Total Questions: ${totalQuestions}<br>
-                Correct Answers: ${correctAnswers}<br>
-                Incorrect Answers: ${incorrectAnswers}<br>
-                Missed Questions: ${missedQuestions}<br>
-                Total Score: ${score}<br>
-                Percentage: ${percentage.toFixed(2)}%
-            `;
-            document.getElementById('result').innerHTML = resultText;
+            resultElement.innerText = `Your Score: ${score} out of ${questions.length} (${scorePercentage.toFixed(2)}%)`;
+            resultElement.style.display = 'block';
 
-            showDetailedResults();
-            showChart(correctAnswers, incorrectAnswers, missedQuestions);
-            showQuestionList();
-        }
-
-        function showDetailedResults() {
-            const detailedResultsContainer = document.getElementById('detailedResults');
-            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
-            results.forEach(result => {
-                const yourAnswer = result.selected ? result.selected : 'Not Answered';
-                const correctAnswer = result.correct;
-                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                detailedResultsContainer.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td>${result.question}</td>
-                        <td>${yourAnswer}</td>
-                        <td>${correctAnswer}</td>
-                    </tr>`;
-            });
-            detailedResultsContainer.innerHTML += `</table>`;
-            detailedResultsContainer.style.display = 'block';
-        }
-
-        function showQuestionList() {
-            const questionListContainer = document.createElement('div');
-            questionListContainer.className = 'question-list';
-            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
+            detailedResultsElement.style.display = 'block';
+            detailedResultsElement.innerHTML = '<h2>Detailed Results</h2>';
+            detailedResultsElement.innerHTML += '<table><tr><th>Question</th><th>Result</th></tr>';
+            
             results.forEach((result, index) => {
-                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
+                detailedResultsElement.innerHTML += `<tr class="${result.correct ? 'correct' : 'incorrect'}">
+                    <td>${result.question}</td>
+                    <td>${result.correct ? 'Correct' : 'Incorrect'}</td>
+                </tr>`;
             });
-            questionListContainer.innerHTML += `</ul>`;
-            document.getElementById('detailedResults').appendChild(questionListContainer);
+
+            detailedResultsElement.innerHTML += '</table>';
+            saveScore(scorePercentage);
+            showChart(scorePercentage);
         }
 
-        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Correct', 'Incorrect', 'Missed'],
-                    datasets: [{
-                        label: 'Quiz Results',
-                        data: [correctAnswers, incorrectAnswers, missedQuestions],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
-                        }
-                    }
-                }
-            });
-            document.getElementById('chartContainer').style.display = 'block';
-        }
-
-        function saveScoreToDatabase() {
-            const userId = user.uid; // Using actual user ID
+        function saveScore(scorePercentage) {
+            const userId = user.uid;
             const examId = getExamId();
-            const scoreData = {
-                userId,
-                examId,
-                score,
-                timestamp: Date.now()
-            };
-
-            database.ref(`scores/${userId}/${examId}`).set(scoreData).then(() => {
-                console.log('Score saved successfully!');
+            database.ref(`users/${userId}/scores/${examId}`).set({
+                score: score,
+                totalQuestions: questions.length,
+                percentage: scorePercentage,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                console.log('Score saved successfully.');
             }).catch(error => {
                 console.error('Error saving score:', error);
             });
         }
 
-        window.onload = loadQuestions;
+        function showChart(scorePercentage) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            const chartData = {
+                labels: ['Score', 'Missed'],
+                datasets: [{
+                    label: 'Your Score',
+                    data: [score, questions.length - score],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderColor: '#fff',
+                    borderWidth: 1
+                }]
+            };
+            const scoreChart = new Chart(ctx, {
+                type: 'pie',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Quiz Score Distribution'
+                        }
+                    }
+                });
+            });
+            document.getElementById('chartContainer').style.display = 'block';
+        }
     </script>
 </body>
 </html>
