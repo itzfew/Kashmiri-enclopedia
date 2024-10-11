@@ -369,25 +369,6 @@
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
             showQuestionList();
         }
-
-        function showDetailedResults() {
-            const detailedResultsContainer = document.getElementById('detailedResults');
-            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
-            results.forEach(result => {
-                const yourAnswer = result.selected ? result.selected : 'Not Answered';
-                const correctAnswer = result.correct;
-                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                detailedResultsContainer.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td>${result.question}</td>
-                        <td>${yourAnswer}</td>
-                        <td>${correctAnswer}</td>
-                    </tr>`;
-            });
-            detailedResultsContainer.innerHTML += `</table>`;
-            detailedResultsContainer.style.display = 'block';
-        }
-
         function showQuestionList() {
             const questionListContainer = document.createElement('div');
             questionListContainer.className = 'question-list'; // Add class for styling
