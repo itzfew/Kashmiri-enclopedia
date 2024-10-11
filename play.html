@@ -83,6 +83,26 @@
             width: 0;
             transition: width 0.3s;
         }
+        .detailed-results {
+            margin-top: 20px;
+        }
+        .detailed-results h2 {
+            text-align: center;
+            color: #28a745;
+        }
+        .detailed-results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .detailed-results th, .detailed-results td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .detailed-results th {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +119,7 @@
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
         <div id="result" class="result"></div>
+        <div id="detailedResults" class="detailed-results" style="display:none;"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -121,6 +142,7 @@
         let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
+        let results = [];
 
         function getExamId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -178,11 +200,18 @@
             if (selectedOptionDiv) {
                 const answer = parseInt(selectedOptionDiv.dataset.selectedOption);
                 const correctAnswer = parseInt(questions[currentQuestionIndex].correctOption);
+                results.push({
+                    question: questions[currentQuestionIndex].question,
+                    selected: answer,
+                    correct: correctAnswer
+                });
+
                 if (answer === correctAnswer) {
                     score += 4; // Correct answer
                 } else {
                     score -= 1; // Incorrect answer
                 }
+
                 currentQuestionIndex++;
                 if (currentQuestionIndex < questions.length) {
                     displayQuestion();
@@ -205,6 +234,32 @@
             const resultMessage = `Your score: ${score} out of ${questions.length * 4}`;
             const grade = calculateGrade(score);
             document.getElementById('result').innerText = `${resultMessage} - Grade: ${grade}`;
+            showDetailedResults();
+        }
+
+        function showDetailedResults() {
+            const detailedResultsContainer = document.getElementById('detailedResults');
+            detailedResultsContainer.style.display = 'block';
+            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2>
+                <table>
+                    <tr>
+                        <th>Question</th>
+                        <th>Your Answer</th>
+                        <th>Correct Answer</th>
+                    </tr>`;
+            
+            results.forEach((result) => {
+                const yourAnswer = result.selected ? `Option ${result.selected}` : 'Not answered';
+                const correctAnswer = `Option ${result.correct}`;
+                detailedResultsContainer.innerHTML += `
+                    <tr>
+                        <td>${result.question}</td>
+                        <td>${yourAnswer}</td>
+                        <td>${correctAnswer}</td>
+                    </tr>`;
+            });
+
+            detailedResultsContainer.innerHTML += `</table>`;
         }
 
         function calculateGrade(score) {
