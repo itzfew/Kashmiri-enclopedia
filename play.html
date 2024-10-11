@@ -21,10 +21,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border: 1px solid #007BFF;
-            transition: transform 0.3s;
-        }
-        .container:hover {
-            transform: scale(1.02);
         }
         h1 {
             text-align: center;
@@ -47,14 +43,13 @@
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+            transition: background 0.3s, border-color 0.3s;
             margin-bottom: 15px;
             background: #e3f2fd;
             position: relative;
         }
         .option:hover {
             background: #bbdefb;
-            transform: translateY(-2px);
         }
         .option.selected {
             background: #007BFF;
@@ -69,26 +64,17 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s, transform 0.3s;
+            transition: background 0.3s;
             margin-top: 15px;
             font-size: 1em;
             font-weight: 600;
         }
         .btn:hover {
             background: #0056b3;
-            transform: scale(1.05);
         }
-        .result {
-            margin-top: 20px;
-            font-weight: bold;
+        .result, .timer, .progress {
+            margin: 20px 0;
             text-align: center;
-            font-size: 1.4em;
-            color: #28a745;
-        }
-        .progress {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
         }
         .progress-bar {
             width: 100%;
@@ -105,23 +91,18 @@
         .timer {
             font-size: 1.2em;
             color: #dc3545;
-            text-align: center;
-            margin: 20px 0;
         }
         .detailed-results {
             margin-top: 20px;
             display: none;
         }
         .detailed-results h2 {
-            text-align: center;
             color: #28a745;
         }
         .detailed-results table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            border-radius: 5px;
-            overflow: hidden;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .detailed-results th, .detailed-results td {
@@ -303,7 +284,7 @@
 
         function calculateScore() {
             score = results.reduce((total, result) => {
-                if (result.selected == result.correct) return total + 4; 
+                if (result.selected === result.correct) return total + 4; 
                 if (result.selected) return total - 1; 
                 return total; 
             }, 0);
@@ -323,8 +304,8 @@
 
         function showResults() {
             const totalQuestions = questions.length;
-            const correctAnswers = results.filter(result => result.selected == result.correct).length;
-            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
+            const correctAnswers = results.filter(result => result.selected === result.correct).length;
+            const incorrectAnswers = results.filter(result => result.selected && result.selected !== result.correct).length;
             const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
             const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
 
@@ -340,7 +321,6 @@
 
             showDetailedResults();
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
-            showQuestionList();
         }
 
         function showDetailedResults() {
@@ -359,16 +339,6 @@
             });
             detailedResultsContainer.innerHTML += `</table>`;
             detailedResultsContainer.style.display = 'block';
-        }
-
-        function showQuestionList() {
-            const questionListContainer = document.createElement('div');
-            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
-            results.forEach((result, index) => {
-                questionListContainer.innerHTML += `<li>${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
-            });
-            questionListContainer.innerHTML += `</ul>`;
-            document.getElementById('detailedResults').appendChild(questionListContainer);
         }
 
         function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
