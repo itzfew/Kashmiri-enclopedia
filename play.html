@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #e9ecef;
             color: #333;
             margin: 0;
             padding: 20px;
@@ -46,7 +46,8 @@
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s;
             margin-bottom: 15px;
-            background: #e3f2fd;
+            background: #f1f8ff;
+            font-weight: 500;
         }
         .option:hover {
             background: #bbdefb;
@@ -125,7 +126,7 @@
             height: 400px;
         }
         .user-profile {
-            text-align: right;
+            text-align: center;
             margin-bottom: 20px;
         }
         .user-profile button {
@@ -136,9 +137,16 @@
             padding: 10px;
             cursor: pointer;
             font-size: 0.9em;
+            transition: background 0.3s;
         }
         .user-profile button:hover {
             background: #0056b3;
+        }
+        .welcome-message {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -146,9 +154,10 @@
     <div class="container">
         <div class="user-profile" id="userProfile">
             <span id="userName"></span>
-            <button onclick="toggleProfile()"><i class="fas fa-user"></i></button>
+            <button onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
         </div>
         <h1>Play Quiz</h1>
+        <div class="welcome-message" id="welcomeMessage"></div>
         <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
@@ -193,17 +202,32 @@
             if (userData) {
                 user = userData;
                 document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
-                document.getElementById('userProfile').style.display = 'block';
+                document.getElementById('welcomeMessage').innerText = "Let's test your knowledge!";
                 loadQuestions();
             } else {
-                // Handle user sign-in or redirection
-                window.location.href = 'login.html'; // Redirect to login if not authenticated
+                signIn();
             }
         });
 
-        function toggleProfile() {
-            const profile = document.getElementById('userProfile');
-            profile.style.display = profile.style.display === 'block' ? 'none' : 'block';
+        function signIn() {
+            auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+        }
+
+        function signOut() {
+            auth.signOut().then(() => {
+                user = null;
+                document.getElementById('userName').innerText = '';
+                document.getElementById('welcomeMessage').innerText = '';
+                questions = [];
+                currentQuestionIndex = 0;
+                score = 0;
+                results = [];
+                document.getElementById('quizContainer').style.display = 'none';
+                document.getElementById('result').innerText = '';
+                document.getElementById('chartContainer').style.display = 'none';
+            }).catch(error => {
+                console.error('Error signing out:', error);
+            });
         }
 
         function getExamId() {
@@ -232,7 +256,6 @@
                 document.getElementById('timeLeft').innerText = formatTime(timeLeft);
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    alert('Time is up! Submitting your quiz.');
                     submitQuiz();
                 }
             }, 1000);
@@ -245,11 +268,9 @@
         }
 
         function displayQuestion() {
-            const questionContainer = document.getElementById('quizContainer');
-            const optionsContainer = document.getElementById('optionsContainer');
             const questionData = questions[currentQuestionIndex];
-
-            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
+            document.getElementById('quizContainer').innerHTML = `<h3>${questionData.question}</h3>`;
+            const optionsContainer = document.getElementById('optionsContainer');
             optionsContainer.innerHTML = '';
             questionData.options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
@@ -394,7 +415,7 @@
 
         window.onload = () => {
             if (!user) {
-                auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+                signIn();
             }
         };
     </script>
