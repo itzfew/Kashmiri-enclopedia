@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Play</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -12,23 +13,6 @@
             color: #333;
             margin: 0;
             padding: 20px;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .profile {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
         }
         .container {
             max-width: 900px;
@@ -40,21 +24,17 @@
             border: 1px solid #007BFF;
             transition: transform 0.3s;
         }
-        .container:hover {
-            transform: scale(1.02);
-        }
         h1 {
             text-align: center;
             color: #007BFF;
             margin-bottom: 20px;
             font-weight: 700;
         }
-        .question {
+        .timer {
+            font-size: 1.2em;
+            color: #dc3545;
+            text-align: center;
             margin: 20px 0;
-            font-size: 1.4em;
-            font-weight: 500;
-            border-bottom: 2px solid #007BFF;
-            padding-bottom: 10px;
         }
         .options {
             margin: 20px 0;
@@ -64,14 +44,12 @@
             border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
-            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+            transition: background 0.3s, border-color 0.3s;
             margin-bottom: 15px;
             background: #e3f2fd;
-            position: relative;
         }
         .option:hover {
             background: #bbdefb;
-            transform: translateY(-2px);
         }
         .option.selected {
             background: #007BFF;
@@ -86,14 +64,13 @@
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s, transform 0.3s;
+            transition: background 0.3s;
             margin-top: 15px;
             font-size: 1em;
             font-weight: 600;
         }
         .btn:hover {
             background: #0056b3;
-            transform: scale(1.05);
         }
         .result {
             margin-top: 20px;
@@ -101,29 +78,6 @@
             text-align: center;
             font-size: 1.4em;
             color: #28a745;
-        }
-        .progress {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .progress-bar {
-            width: 100%;
-            background: #ddd;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 10px;
-            background: #007BFF;
-            width: 0;
-            transition: width 0.3s;
-        }
-        .timer {
-            font-size: 1.2em;
-            color: #dc3545;
-            text-align: center;
-            margin: 20px 0;
         }
         .detailed-results {
             margin-top: 20px;
@@ -147,7 +101,8 @@
             text-align: center;
         }
         .detailed-results th {
-            background-color: #f2f2f2;
+            background-color: #007BFF;
+            color: white;
             font-weight: 700;
         }
         .correct {
@@ -169,69 +124,34 @@
             width: 80%;
             height: 400px;
         }
-        .question-list {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #007BFF;
+        .user-profile {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .user-profile button {
+            background: #007BFF;
+            color: white;
+            border: none;
             border-radius: 5px;
-            background: #f9f9f9;
-        }
-        .question-list h2 {
-            text-align: center;
-            color: #007BFF;
-        }
-        .question-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .question-list li {
-            margin: 10px 0;
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #007BFF;
-            transition: background 0.3s;
+            cursor: pointer;
+            font-size: 0.9em;
         }
-        .question-list li.correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .question-list li.incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            .btn {
-                padding: 10px;
-                font-size: 0.9em;
-            }
-            .question {
-                font-size: 1.2em;
-            }
+        .user-profile button:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Play Quiz</h1>
-        <div class="profile" id="profile" onclick="toggleLogin()">
-            <img id="profilePic" src="" alt="Profile Picture" style="display: none;">
-            <span id="profileName">Login / Signup</span>
-        </div>
-    </header>
-    
     <div class="container">
+        <div class="user-profile" id="userProfile">
+            <span id="userName"></span>
+            <button onclick="toggleProfile()"><i class="fas fa-user"></i></button>
+        </div>
+        <h1>Play Quiz</h1>
         <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
-        <div class="progress">
-            Question <span id="currentQuestionIndex">1</span> of <span id="totalQuestions"></span>
-            <div class="progress-bar">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
-        </div>
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
         <div id="result" class="result"></div>
@@ -259,184 +179,224 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const auth = firebase.auth();
 
         let questions = [];
         let currentQuestionIndex = 0;
         let score = 0;
+        let results = [];
         let timer;
-        const totalQuestions = 10; // Number of questions
+        const totalTime = 300; // Total time for the quiz
+        let user = null; // Current user object
 
-        const loadQuestions = () => {
-            // Example questions. Replace this with your database retrieval logic
-            questions = [
-                { question: "What is 2 + 2?", options: ["3", "4", "5", "6"], answer: "4" },
-                { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], answer: "Paris" },
-                // Add more questions as needed
-            ];
-            document.getElementById('totalQuestions').innerText = questions.length;
-            displayQuestion();
-        };
+        auth.onAuthStateChanged(userData => {
+            if (userData) {
+                user = userData;
+                document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
+                document.getElementById('userProfile').style.display = 'block';
+                loadQuestions();
+            } else {
+                // Handle user sign-in or redirection
+                window.location.href = 'login.html'; // Redirect to login if not authenticated
+            }
+        });
 
-        const displayQuestion = () => {
-            const currentQuestion = questions[currentQuestionIndex];
-            document.getElementById('quizContainer').innerText = currentQuestion.question;
-            const optionsContainer = document.getElementById('optionsContainer');
-            optionsContainer.innerHTML = '';
+        function toggleProfile() {
+            const profile = document.getElementById('userProfile');
+            profile.style.display = profile.style.display === 'block' ? 'none' : 'block';
+        }
 
-            currentQuestion.options.forEach(option => {
-                const div = document.createElement('div');
-                div.innerText = option;
-                div.className = 'option';
-                div.onclick = () => selectOption(option);
-                optionsContainer.appendChild(div);
+        function getExamId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('examId');
+        }
+
+        function loadQuestions() {
+            const examId = getExamId();
+            database.ref(`exams/${examId}/quizzes`).once('value').then(snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    questions.push(childSnapshot.val());
+                });
+                startTimer();
+                displayQuestion();
+            }).catch(error => {
+                console.error('Error loading questions:', error);
             });
+        }
 
-            document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
-            document.getElementById('totalQuestions').innerText = questions.length;
-            updateProgressBar();
-        };
+        function startTimer() {
+            let timeLeft = totalTime;
+            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert('Time is up! Submitting your quiz.');
+                    submitQuiz();
+                }
+            }, 1000);
+        }
 
-        const selectOption = (selectedOption) => {
-            const currentQuestion = questions[currentQuestionIndex];
-            const options = document.querySelectorAll('.option');
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
 
-            options.forEach(option => {
-                option.classList.remove('selected');
-                if (option.innerText === selectedOption) {
-                    option.classList.add('selected');
+        function displayQuestion() {
+            const questionContainer = document.getElementById('quizContainer');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const questionData = questions[currentQuestionIndex];
+
+            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
+            optionsContainer.innerHTML = '';
+            questionData.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.innerText = option;
+                optionDiv.onclick = () => selectOption(index + 1);
+                optionsContainer.appendChild(optionDiv);
+            });
+        }
+
+        function selectOption(selectedOption) {
+            const optionElements = document.querySelectorAll('.option');
+            optionElements.forEach((optionElement, index) => {
+                optionElement.classList.remove('selected');
+                if (index + 1 === selectedOption) {
+                    optionElement.classList.add('selected');
                 }
             });
+            results[currentQuestionIndex] = {
+                question: questions[currentQuestionIndex].question,
+                selected: selectedOption,
+                correct: questions[currentQuestionIndex].correctOption
+            };
+        }
 
-            if (selectedOption === currentQuestion.answer) {
-                score++;
-            }
-        };
-
-        const nextQuestion = () => {
+        function nextQuestion() {
             if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
                 displayQuestion();
-            } else {
-                submitQuiz();
             }
-        };
+            if (currentQuestionIndex === questions.length - 1) {
+                document.getElementById('nextButton').style.display = 'none';
+                document.getElementById('submitButton').style.display = 'block';
+            }
+        }
 
-        const submitQuiz = () => {
+        function calculateScore() {
+            score = results.reduce((total, result) => {
+                if (result.selected == result.correct) return total + 4; 
+                if (result.selected) return total - 1; 
+                return total; 
+            }, 0);
+        }
+
+        function submitQuiz() {
             clearInterval(timer);
+            calculateScore();
             document.getElementById('quizContainer').style.display = 'none';
             document.getElementById('optionsContainer').style.display = 'none';
             document.getElementById('nextButton').style.display = 'none';
             document.getElementById('submitButton').style.display = 'none';
 
-            const resultContainer = document.getElementById('result');
-            resultContainer.innerText = `Your score: ${score}/${questions.length}`;
-
+            showResults();
             saveScoreToDatabase();
+        }
+
+        function showResults() {
+            const totalQuestions = questions.length;
+            const correctAnswers = results.filter(result => result.selected == result.correct).length;
+            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
+            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
+            const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
+
+            const resultText = `
+                Total Questions: ${totalQuestions}<br>
+                Correct Answers: ${correctAnswers}<br>
+                Incorrect Answers: ${incorrectAnswers}<br>
+                Missed Questions: ${missedQuestions}<br>
+                Total Score: ${score}<br>
+                Percentage: ${percentage.toFixed(2)}%
+            `;
+            document.getElementById('result').innerHTML = resultText;
+
             showDetailedResults();
-            displayChart();
-        };
+            showChart(correctAnswers, incorrectAnswers, missedQuestions);
+        }
 
-        const saveScoreToDatabase = () => {
-            const user = firebase.auth().currentUser;
-            if (user) {
-                const scoreData = {
-                    name: user.displayName,
-                    email: user.email,
-                    examId: "quiz1",
-                    score,
-                    timestamp: Date.now()
-                };
-
-                database.ref(`scores/${user.uid}/quiz1`).set(scoreData)
-                    .then(() => console.log('Score saved successfully!'))
-                    .catch(error => console.error('Error saving score:', error));
-            }
-        };
-
-        const showDetailedResults = () => {
-            const detailedResults = document.getElementById('detailedResults');
-            detailedResults.innerHTML = '<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>';
-
-            questions.forEach((question, index) => {
-                const answer = document.querySelector(`.option.selected`).innerText;
-                const correct = question.answer;
-                const className = answer === correct ? 'correct' : 'incorrect';
-                detailedResults.innerHTML += `<tr class="${className}"><td>${question.question}</td><td>${answer}</td><td>${correct}</td></tr>`;
+        function showDetailedResults() {
+            const detailedResultsContainer = document.getElementById('detailedResults');
+            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
+            results.forEach(result => {
+                const yourAnswer = result.selected ? result.selected : 'Not Answered';
+                const correctAnswer = result.correct;
+                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
+                detailedResultsContainer.innerHTML += `
+                    <tr class="${rowClass}">
+                        <td>${result.question}</td>
+                        <td>${yourAnswer}</td>
+                        <td>${correctAnswer}</td>
+                    </tr>`;
             });
+            detailedResultsContainer.innerHTML += `</table>`;
+            detailedResultsContainer.style.display = 'block';
+        }
 
-            detailedResults.innerHTML += '</table>';
-            detailedResults.style.display = 'block';
-        };
-
-        const displayChart = () => {
-            const chartContainer = document.getElementById('chartContainer');
+        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
             const chart = new Chart(ctx, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: ['Your Score', 'Total Questions'],
+                    labels: ['Correct', 'Incorrect', 'Missed'],
                     datasets: [{
-                        label: 'Score',
-                        data: [score, questions.length],
-                        backgroundColor: ['#007BFF', '#ddd']
+                        label: 'Quiz Results',
+                        data: [correctAnswers, incorrectAnswers, missedQuestions],
+                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        borderWidth: 1,
                     }]
                 },
                 options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Quiz Results Breakdown'
                         }
                     }
                 }
             });
-            chartContainer.style.display = 'block';
-        };
+            document.getElementById('chartContainer').style.display = 'block';
+        }
 
-        const updateProgressBar = () => {
-            const progressBarFill = document.getElementById('progressBarFill');
-            const percentage = ((currentQuestionIndex + 1) / questions.length) * 100;
-            progressBarFill.style.width = percentage + '%';
-        };
-
-        const startTimer = () => {
-            let timeLeft = 60; // 1 minute timer
-            document.getElementById('timeLeft').innerText = timeLeft;
-
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timeLeft').innerText = timeLeft;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    submitQuiz();
-                }
-            }, 1000);
-        };
-
-        const initializeQuiz = () => {
-            loadQuestions();
-            startTimer();
-        };
-
-        const toggleLogin = () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider).catch(error => {
-                console.error('Error signing in:', error);
-            });
-        };
-
-        firebase.auth().onAuthStateChanged(user => {
+        function saveScoreToDatabase() {
             if (user) {
-                document.getElementById('profilePic').src = user.photoURL;
-                document.getElementById('profilePic').style.display = 'block';
-                document.getElementById('profileName').innerText = user.displayName;
-                initializeQuiz();
-            } else {
-                document.getElementById('profilePic').style.display = 'none';
-                document.getElementById('profileName').innerText = 'Login / Signup';
-            }
-        });
+                const examId = getExamId();
+                const scoreData = {
+                    name: user.displayName || user.email,
+                    score,
+                    timestamp: Date.now()
+                };
 
+                database.ref(`scores/${user.uid}/${examId}`).set(scoreData).then(() => {
+                    console.log('Score saved successfully!');
+                }).catch(error => {
+                    console.error('Error saving score:', error);
+                });
+            }
+        }
+
+        window.onload = () => {
+            if (!user) {
+                auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+            }
+        };
     </script>
 </body>
 </html>
