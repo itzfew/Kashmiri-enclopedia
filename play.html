@@ -38,14 +38,15 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s;
+            margin-bottom: 10px;
         }
         .option:hover {
             background: #e7f0ff;
         }
         .option.selected {
-            background: #007BFF;
+            background: #28a745;
             color: white;
-            border-color: #007BFF;
+            border-color: #28a745;
         }
         .btn {
             background: #007BFF;
@@ -102,6 +103,14 @@
         }
         .detailed-results th {
             background-color: #f2f2f2;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
@@ -178,7 +187,6 @@
             });
 
             document.getElementById('currentQuestionIndex').innerText = currentQuestionIndex + 1;
-            document.getElementById('totalQuestions').innerText = questions.length;
             updateProgressBar();
         }
 
@@ -235,6 +243,7 @@
             const grade = calculateGrade(score);
             document.getElementById('result').innerText = `${resultMessage} - Grade: ${grade}`;
             showDetailedResults();
+            saveScoreToDatabase();
         }
 
         function showDetailedResults() {
@@ -249,10 +258,11 @@
                     </tr>`;
             
             results.forEach((result) => {
-                const yourAnswer = result.selected ? `Option ${result.selected}` : 'Not answered';
-                const correctAnswer = `Option ${result.correct}`;
+                const yourAnswer = result.selected === result.correct ? result.selected : result.selected;
+                const correctAnswer = result.correct;
+                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
                 detailedResultsContainer.innerHTML += `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td>${result.question}</td>
                         <td>${yourAnswer}</td>
                         <td>${correctAnswer}</td>
@@ -267,6 +277,23 @@
             if (score >= 0.6 * questions.length * 4) return 'B';
             if (score >= 0.4 * questions.length * 4) return 'C';
             return 'F';
+        }
+
+        function saveScoreToDatabase() {
+            const userId = 'exampleUserId'; // Replace with actual user ID logic
+            const examId = getExamId();
+            const scoreData = {
+                userId,
+                examId,
+                score,
+                timestamp: Date.now()
+            };
+
+            database.ref(`scores/${userId}/${examId}`).set(scoreData).then(() => {
+                console.log('Score saved successfully!');
+            }).catch(error => {
+                console.error('Error saving score:', error);
+            });
         }
 
         function submitQuiz() {
