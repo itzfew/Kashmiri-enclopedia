@@ -111,39 +111,6 @@
             text-align: center;
             margin: 20px 0;
         }
-        .detailed-results {
-            margin-top: 20px;
-            display: none;
-        }
-        .detailed-results h2 {
-            text-align: center;
-            color: #28a745;
-        }
-        .detailed-results table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            border-radius: 5px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .detailed-results th, .detailed-results td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        .detailed-results th {
-            background-color: #f2f2f2;
-            font-weight: 700;
-        }
-        .correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
         .chart-container {
             margin-top: 20px;
             display: flex;
@@ -154,36 +121,6 @@
         .chart {
             width: 80%;
             height: 400px;
-        }
-        .question-list {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #007BFF;
-            border-radius: 5px;
-            background: #f9f9f9;
-        }
-        .question-list h2 {
-            text-align: center;
-            color: #007BFF;
-        }
-        .question-list ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        .question-list li {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #007BFF;
-            transition: background 0.3s;
-        }
-        .question-list li.correct {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .question-list li.incorrect {
-            background-color: #f8d7da;
-            color: #721c24;
         }
         @media (max-width: 600px) {
             .container {
@@ -214,7 +151,6 @@
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
         <div id="result" class="result"></div>
-        <div id="detailedResults" class="detailed-results"></div>
         <div class="chart-container" id="chartContainer" style="display: none;">
             <canvas id="scoreChart" class="chart"></canvas>
         </div>
@@ -351,6 +287,7 @@
             document.getElementById('submitButton').style.display = 'none';
 
             showResults();
+            showChart();
             saveScoreToDatabase();
         }
 
@@ -371,30 +308,14 @@
                 <div>Percentage: ${percentage.toFixed(2)}%</div>
             `;
             document.getElementById('result').innerHTML = resultText;
-
-            showDetailedResults();
-            showChart(correctAnswers, incorrectAnswers, missedQuestions);
         }
 
-        function showDetailedResults() {
-            const detailedResultsContainer = document.getElementById('detailedResults');
-            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
-            results.forEach(result => {
-                const yourAnswer = result.selected ? result.selected : 'Not Answered';
-                const correctAnswer = result.correct;
-                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                detailedResultsContainer.innerHTML += `
-                    <tr class="${rowClass}">
-                        <td>${result.question}</td>
-                        <td>${yourAnswer}</td>
-                        <td>${correctAnswer}</td>
-                    </tr>`;
-            });
-            detailedResultsContainer.innerHTML += `</table>`;
-            detailedResultsContainer.style.display = 'block';
-        }
+        function showChart() {
+            const totalQuestions = questions.length;
+            const correctAnswers = results.filter(result => result.selected == result.correct).length;
+            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
+            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
 
-        function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
             const chart = new Chart(ctx, {
                 type: 'doughnut',
