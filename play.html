@@ -340,6 +340,7 @@
 
             showDetailedResults();
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
+            showQuestionList();
         }
 
         function showDetailedResults() {
@@ -358,6 +359,16 @@
             });
             detailedResultsContainer.innerHTML += `</table>`;
             detailedResultsContainer.style.display = 'block';
+        }
+
+        function showQuestionList() {
+            const questionListContainer = document.createElement('div');
+            questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
+            results.forEach((result, index) => {
+                questionListContainer.innerHTML += `<li>${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
+            });
+            questionListContainer.innerHTML += `</ul>`;
+            document.getElementById('detailedResults').appendChild(questionListContainer);
         }
 
         function showChart(correctAnswers, incorrectAnswers, missedQuestions) {
