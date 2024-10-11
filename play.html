@@ -152,6 +152,33 @@
             width: 80%;
             height: 400px;
         }
+        .question-list {
+            margin-top: 20px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .question-list h2 {
+            text-align: center;
+            color: #007BFF;
+        }
+        .question-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .question-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            transition: background 0.3s;
+        }
+        .question-list li:last-child {
+            border-bottom: none;
+        }
+        .question-list li:hover {
+            background: #e7f3ff;
+        }
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -363,10 +390,17 @@
 
         function showQuestionList() {
             const questionListContainer = document.createElement('div');
+            questionListContainer.className = 'question-list'; // Add class for styling
             questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
+            
             results.forEach((result, index) => {
-                questionListContainer.innerHTML += `<li>${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
+                const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
+                questionListContainer.innerHTML += `
+                    <li class="${answerClass}">
+                        ${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}
+                    </li>`;
             });
+            
             questionListContainer.innerHTML += `</ul>`;
             document.getElementById('detailedResults').appendChild(questionListContainer);
         }
