@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
+            background-color: #f8f9fa;
             color: #333;
             margin: 0;
             padding: 20px;
@@ -20,6 +20,7 @@
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #007BFF;
         }
         h1 {
             text-align: center;
@@ -31,18 +32,21 @@
             margin: 20px 0;
             font-size: 1.2em;
             font-weight: 500;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
         }
         .options {
             margin: 20px 0;
         }
         .option {
             padding: 12px;
-            border: 1px solid #007BFF;
+            border: 2px solid #007BFF;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s;
             margin-bottom: 15px;
-            background: #f1f9ff;
+            background: #e7f1ff;
+            position: relative;
         }
         .option:hover {
             background: #d0e7ff;
@@ -91,6 +95,12 @@
             background: #007BFF;
             width: 0;
             transition: width 0.3s;
+        }
+        .timer {
+            font-size: 1.2em;
+            color: #dc3545;
+            text-align: center;
+            margin: 20px 0;
         }
         .detailed-results {
             margin-top: 20px;
@@ -141,6 +151,7 @@
 <body>
     <div class="container">
         <h1>Quiz</h1>
+        <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
         <div class="progress">
@@ -176,6 +187,8 @@
         let currentQuestionIndex = 0;
         let score = 0;
         let results = [];
+        let timer; // Timer variable
+        const totalTime = 300; // Total time for the quiz in seconds (5 minutes)
 
         function getExamId() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -189,10 +202,31 @@
                     questions.push(childSnapshot.val());
                 });
                 document.getElementById('totalQuestions').innerText = questions.length;
+                startTimer();
                 displayQuestion();
             }).catch(error => {
                 console.error('Error loading questions:', error);
             });
+        }
+
+        function startTimer() {
+            let timeLeft = totalTime;
+            document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').innerText = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert('Time is up! Submitting your quiz.');
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
         function displayQuestion() {
@@ -218,54 +252,50 @@
             const options = document.querySelectorAll('.option');
             options.forEach(option => option.classList.remove('selected'));
             optionDiv.classList.add('selected');
-            optionDiv.dataset.selectedOption = selectedOption;
+            optionDiv.dataset.selected = selectedOption;
+
+            const questionData = questions[currentQuestionIndex];
+            results[currentQuestionIndex] = {
+                question: questionData.question,
+                selected: selectedOption,
+                correct: questionData.correctOption
+            };
         }
 
         function updateProgressBar() {
-            const progressBarFill = document.getElementById('progressBarFill');
-            const percentage = ((currentQuestionIndex + 1) / questions.length) * 100;
-            progressBarFill.style.width = percentage + '%';
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressBarFill').style.width = `${progress}%`;
         }
 
         function nextQuestion() {
-            const selectedOptionDiv = document.querySelector('.option.selected');
-            if (selectedOptionDiv) {
-                const answer = parseInt(selectedOptionDiv.dataset.selectedOption);
-                const correctAnswer = parseInt(questions[currentQuestionIndex].correctOption);
-                results.push({
-                    question: questions[currentQuestionIndex].question,
-                    selected: answer,
-                    correct: correctAnswer
-                });
-
-                if (answer === correctAnswer) {
-                    score += 4; // Correct answer
-                } else {
-                    score -= 1; // Incorrect answer
-                }
-
+            if (currentQuestionIndex < questions.length - 1) {
                 currentQuestionIndex++;
-                if (currentQuestionIndex < questions.length) {
-                    displayQuestion();
-                } else {
-                    displayResults();
+                displayQuestion();
+                if (currentQuestionIndex === questions.length - 1) {
+                    document.getElementById('nextButton').style.display = 'none';
+                    document.getElementById('submitButton').style.display = 'block';
                 }
-            } else {
-                alert('Please select an option before proceeding!');
             }
         }
 
-        function displayResults() {
-            const questionContainer = document.getElementById('quizContainer');
-            const optionsContainer = document.getElementById('optionsContainer');
-            questionContainer.innerHTML = '';
-            optionsContainer.innerHTML = '';
+        function calculateScore() {
+            score = results.reduce((total, result) => {
+                if (result.selected == result.correct) return total + 4; // Correct answer
+                if (result.selected) return total - 1; // Incorrect answer
+                return total; // Missed question
+            }, 0);
+        }
+
+        function submitQuiz() {
+            clearInterval(timer);
+            calculateScore();
+            document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('optionsContainer').style.display = 'none';
             document.getElementById('nextButton').style.display = 'none';
-            document.getElementById('submitButton').style.display = 'block';
+            document.getElementById('submitButton').style.display = 'none';
 
             const grade = calculateGrade(score);
             document.getElementById('result').innerText = `Your Score: ${score} - Grade: ${grade}`;
-
             showDetailedResults();
             saveScoreToDatabase();
         }
@@ -312,11 +342,6 @@
             }).catch(error => {
                 console.error('Error saving score:', error);
             });
-        }
-
-        function submitQuiz() {
-            alert('Quiz submitted! Thank you for participating!');
-            window.close(); // Close the quiz window
         }
 
         window.onload = loadQuestions;
