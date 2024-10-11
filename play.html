@@ -154,11 +154,10 @@
         }
         .question-list {
             margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
             background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .question-list h2 {
             text-align: center;
@@ -169,15 +168,19 @@
             padding: 0;
         }
         .question-list li {
+            margin: 10px 0;
             padding: 10px;
-            border-bottom: 1px solid #ddd;
+            border-radius: 5px;
+            border: 1px solid #007BFF;
             transition: background 0.3s;
         }
-        .question-list li:last-child {
-            border-bottom: none;
+        .question-list li.correct {
+            background-color: #d4edda;
+            color: #155724;
         }
-        .question-list li:hover {
-            background: #e7f3ff;
+        .question-list li.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
         }
         @media (max-width: 600px) {
             .container {
@@ -369,19 +372,33 @@
             showChart(correctAnswers, incorrectAnswers, missedQuestions);
             showQuestionList();
         }
+
+        function showDetailedResults() {
+            const detailedResultsContainer = document.getElementById('detailedResults');
+            detailedResultsContainer.innerHTML = `<h2>Detailed Results</h2><table><tr><th>Question</th><th>Your Answer</th><th>Correct Answer</th></tr>`;
+            results.forEach(result => {
+                const yourAnswer = result.selected ? result.selected : 'Not Answered';
+                const correctAnswer = result.correct;
+                const rowClass = result.selected === result.correct ? 'correct' : 'incorrect';
+                detailedResultsContainer.innerHTML += `
+                    <tr class="${rowClass}">
+                        <td>${result.question}</td>
+                        <td>${yourAnswer}</td>
+                        <td>${correctAnswer}</td>
+                    </tr>`;
+            });
+            detailedResultsContainer.innerHTML += `</table>`;
+            detailedResultsContainer.style.display = 'block';
+        }
+
         function showQuestionList() {
             const questionListContainer = document.createElement('div');
-            questionListContainer.className = 'question-list'; // Add class for styling
+            questionListContainer.className = 'question-list';
             questionListContainer.innerHTML = `<h2>Your Questions</h2><ul>`;
-            
             results.forEach((result, index) => {
                 const answerClass = result.selected === result.correct ? 'correct' : 'incorrect';
-                questionListContainer.innerHTML += `
-                    <li class="${answerClass}">
-                        ${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}
-                    </li>`;
+                questionListContainer.innerHTML += `<li class="${answerClass}">${index + 1}. ${result.question} - Your Answer: ${result.selected || 'Not Answered'} - Correct Answer: ${result.correct}</li>`;
             });
-            
             questionListContainer.innerHTML += `</ul>`;
             document.getElementById('detailedResults').appendChild(questionListContainer);
         }
