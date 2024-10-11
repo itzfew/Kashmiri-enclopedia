@@ -22,6 +22,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             border: 1px solid #007BFF;
             transition: transform 0.3s;
+            width: 100%;
         }
         .container:hover {
             transform: scale(1.02);
@@ -33,7 +34,7 @@
             font-weight: 700;
         }
         .profile {
-            text-align: center;
+            text-align: right;
             margin-bottom: 20px;
             border: 2px solid #007BFF;
             border-radius: 10px;
@@ -51,6 +52,7 @@
             font-weight: 500;
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
+            width: 100%;
         }
         .options {
             margin: 20px 0;
@@ -211,11 +213,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>Play Quiz</h1>
         <div class="profile" id="userProfile" style="display: none;">
             <div class="profile-info" id="userName"></div>
             <button class="btn" onclick="toggleProfile()">Toggle Profile</button>
         </div>
+        <h1>Play Quiz</h1>
         <div class="timer" id="timer">Time Left: <span id="timeLeft"></span></div>
         <div id="quizContainer" class="question"></div>
         <div class="options" id="optionsContainer"></div>
@@ -232,6 +234,10 @@
         <div class="chart-container" id="chartContainer" style="display: none;">
             <canvas id="scoreChart" class="chart"></canvas>
         </div>
+        <div class="question-list" id="questionList" style="display: none;">
+            <h2>Questions List</h2>
+            <ul id="questionListContainer"></ul>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -247,7 +253,7 @@
             storageBucket: "eduhub-a3762.appspot.com",
             messagingSenderId: "115221366217",
             appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
+            measurementId: "G-Q8SPK1NKLZ"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -266,11 +272,8 @@
                 user = userData;
                 document.getElementById('userName').innerText = `Welcome, ${user.displayName || user.email}!`;
                 document.getElementById('userProfile').style.display = 'block';
-                loadQuestions(); // Load questions without redirecting
+                loadQuestions();
                 startTimer();
-            } else {
-                // Optionally show a login button or redirect if not authenticated
-                // window.location.href = 'login.html'; // Redirect to login if not authenticated
             }
         });
 
@@ -279,6 +282,7 @@
                 questions = snapshot.val();
                 document.getElementById('totalQuestions').innerText = questions.length;
                 displayQuestion();
+                displayQuestionList();
             });
         }
 
@@ -304,6 +308,17 @@
             }
         }
 
+        function displayQuestionList() {
+            const questionListContainer = document.getElementById('questionListContainer');
+            questionListContainer.innerHTML = '';
+            questions.forEach((question, index) => {
+                const li = document.createElement('li');
+                li.innerText = question.question;
+                questionListContainer.appendChild(li);
+            });
+            document.getElementById('questionList').style.display = 'block';
+        }
+
         function selectOption(index) {
             const selectedOption = document.querySelectorAll('.option')[index];
             selectedOption.classList.add('selected');
@@ -311,7 +326,7 @@
                 score++;
             }
             Array.from(document.querySelectorAll('.option')).forEach((option, idx) => {
-                option.onclick = null; // Disable further clicks
+                option.onclick = null;
                 if (questions[currentQuestionIndex].correctOption === idx) {
                     option.classList.add('correct');
                 } else {
@@ -339,12 +354,8 @@
             document.getElementById('submitButton').style.display = 'none';
             const result = `You scored ${score} out of ${questions.length}`;
             document.getElementById('result').innerText = result;
-
-            // Show detailed results
             showDetailedResults();
-            // Show score chart
             showScoreChart();
-
             document.getElementById('detailedResults').style.display = 'block';
         }
 
