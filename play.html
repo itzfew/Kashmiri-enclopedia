@@ -8,22 +8,19 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
-            color: #343a40;
+            background-color: #f0f4f8;
+            color: #333;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
         .container {
-            max-width: 600px;
-            width: 100%;
-            padding: 20px;
+            max-width: 900px;
+            margin: auto;
+            padding: 30px;
             background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #007BFF;
             transition: transform 0.3s;
         }
         .container:hover {
@@ -52,11 +49,11 @@
             cursor: pointer;
             transition: background 0.3s, border-color 0.3s, transform 0.3s;
             margin-bottom: 15px;
-            background: #f0f4f8;
+            background: #e3f2fd;
             position: relative;
         }
         .option:hover {
-            background: #d1e7fd;
+            background: #bbdefb;
             transform: translateY(-2px);
         }
         .option.selected {
@@ -111,6 +108,14 @@
             text-align: center;
             margin: 20px 0;
         }
+        .detailed-results {
+            margin-top: 20px;
+            display: none;
+        }
+        .detailed-results h2 {
+            text-align: center;
+            color: #28a745;
+        }
         .chart-container {
             margin-top: 20px;
             display: flex;
@@ -151,6 +156,7 @@
         <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
         <button class="btn" id="submitButton" onclick="submitQuiz()" style="display:none;">Submit</button>
         <div id="result" class="result"></div>
+        <div id="detailedResults" class="detailed-results"></div>
         <div class="chart-container" id="chartContainer" style="display: none;">
             <canvas id="scoreChart" class="chart"></canvas>
         </div>
@@ -225,7 +231,7 @@
             const optionsContainer = document.getElementById('optionsContainer');
             const questionData = questions[currentQuestionIndex];
 
-            questionContainer.innerHTML = `<h3 class="question">${questionData.question}</h3>`;
+            questionContainer.innerHTML = `<h3>${questionData.question}</h3>`;
             optionsContainer.innerHTML = '';
             questionData.options.forEach((option, index) => {
                 const optionDiv = document.createElement('div');
@@ -287,7 +293,6 @@
             document.getElementById('submitButton').style.display = 'none';
 
             showResults();
-            showChart();
             saveScoreToDatabase();
         }
 
@@ -298,7 +303,7 @@
             const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
             const percentage = ((correctAnswers * 4) / (totalQuestions * 4)) * 100;
 
-            const resultText = `
+            let resultText = `
                 <h2>Your Score</h2>
                 <div>Total Questions: ${totalQuestions}</div>
                 <div>Correct Answers: ${correctAnswers}</div>
@@ -306,43 +311,22 @@
                 <div>Missed Questions: ${missedQuestions}</div>
                 <div>Total Score: ${score}</div>
                 <div>Percentage: ${percentage.toFixed(2)}%</div>
+                <h3>Question Details:</h3>
+                <ul>
             `;
-            document.getElementById('result').innerHTML = resultText;
-        }
 
-        function showChart() {
-            const totalQuestions = questions.length;
-            const correctAnswers = results.filter(result => result.selected == result.correct).length;
-            const incorrectAnswers = results.filter(result => result.selected && result.selected != result.correct).length;
-            const missedQuestions = totalQuestions - correctAnswers - incorrectAnswers;
-
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Correct', 'Incorrect', 'Missed'],
-                    datasets: [{
-                        label: 'Quiz Results',
-                        data: [correctAnswers, incorrectAnswers, missedQuestions],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
-                        }
-                    }
-                }
+            results.forEach((result, index) => {
+                resultText += `
+                    <li>
+                        <strong>Q${index + 1}: ${result.question}</strong><br>
+                        Selected: ${result.selected}<br>
+                        Correct: ${result.correct}
+                    </li>
+                `;
             });
-            document.getElementById('chartContainer').style.display = 'block';
+
+            resultText += '</ul>';
+            document.getElementById('result').innerHTML = resultText;
         }
 
         function saveScoreToDatabase() {
