@@ -50,6 +50,37 @@
         #result {
             display: none;
             text-align: center;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            background: #e7f0ff;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 80%;
+        }
+        .result-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat {
+            background: #f8f9fa;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            padding: 10px;
+            flex: 1;
+            margin: 0 10px;
+            text-align: center;
+        }
+        .green {
+            background-color: #28a745;
+        }
+        .red {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -59,10 +90,12 @@
         <div id="quizContainer"></div>
         <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
         <div id="result"></div>
+        <div class="chart-container" id="chartContainer"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
@@ -159,14 +192,46 @@
 
             resultElement.innerHTML = `
                 <h2>Your Results</h2>
-                <p>Total Questions: ${totalQuestions}</p>
-                <p>Correct Answers: ${totalCorrect}</p>
-                <p>Incorrect Answers: ${totalIncorrect}</p>
-                <p>Total Score: ${totalScore}</p>
+                <div class="result-stats">
+                    <div class="stat green">Total Questions: ${totalQuestions}</div>
+                    <div class="stat">Correct Answers: ${totalCorrect}</div>
+                    <div class="stat red">Incorrect Answers: ${totalIncorrect}</div>
+                    <div class="stat">Total Score: ${totalScore}</div>
+                </div>
             `;
             resultElement.style.display = 'block';
 
-            // Optionally add a chart here to display statistics
+            displayChart(totalCorrect, totalIncorrect, totalQuestions);
+        }
+
+        function displayChart(correct, incorrect, total) {
+            const ctx = document.createElement('canvas');
+            document.getElementById('chartContainer').innerHTML = ''; // Clear previous chart
+            document.getElementById('chartContainer').appendChild(ctx);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Correct', 'Incorrect'],
+                    datasets: [{
+                        data: [correct, incorrect],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                        hoverBackgroundColor: ['#218838', '#c82333']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Quiz Results'
+                        }
+                    }
+                }
+            });
         }
 
         window.onload = loadQuiz;
