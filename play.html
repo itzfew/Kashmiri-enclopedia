@@ -325,6 +325,7 @@
                     username: user.displayName || "User",
                     email: user.email,
                     score: score,
+                    examName: quizzes[0].title, // Save the exam name
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
