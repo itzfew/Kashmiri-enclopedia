@@ -11,14 +11,9 @@
             background-color: #f0f4f8;
             margin: 0;
             padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
         h1 {
             text-align: center;
@@ -28,8 +23,29 @@
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
         }
+        .profile {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+        }
+        .profile h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin: 0;
+        }
+        .profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
         .leaderboard {
-            margin-top: 20px;
+            flex-grow: 1;
+            overflow-y: auto; /* Scrollable if content exceeds the viewport */
         }
         .leaderboard table {
             width: 100%;
@@ -51,26 +67,29 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Leaderboard</h1>
-        <div class="leaderboard">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Exam Name</th>
-                        <th>Score</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody">
-                    <tr>
-                        <td colspan="5" class="no-scores">Loading scores...</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="profile">
+        <h2 id="profileName"></h2>
+        <img id="profileImage" src="default-image.png" alt="Profile Image">
+        <button class="btn" id="logoutButton" style="background: #e53e3e; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Logout</button>
+    </div>
+    <h1>Leaderboard</h1>
+    <div class="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Exam Name</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+                <tr>
+                    <td colspan="5" class="no-scores">Loading scores...</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -89,7 +108,28 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadUserProfile(user);
+                loadLeaderboard();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function loadUserProfile(user) {
+            document.getElementById('profileName').innerText = user.displayName || "User";
+            document.getElementById('profileImage').src = user.photoURL || 'default-image.png';
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = 'index.html';
+                });
+            });
+        }
 
         function loadLeaderboard() {
             const leaderboardRef = database.ref('scores');
@@ -143,4 +183,4 @@
         };
     </script>
 </body>
-</html> 
+</html>
