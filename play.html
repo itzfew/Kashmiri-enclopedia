@@ -79,6 +79,22 @@
             padding: 20px;
             margin-top: 20px;
             background: #e7f0ff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .result-header {
+            font-size: 1.8em;
+            color: #007BFF;
+            margin-bottom: 15px;
+        }
+        .result-details {
+            margin: 15px 0;
+            font-size: 1.2em;
+        }
+        .result-score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #28a745; /* Green for positive feedback */
+            margin-bottom: 10px;
         }
         .chart-container {
             position: relative;
@@ -104,9 +120,18 @@
         .question-list {
             text-align: left;
             margin-top: 20px;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9f9f9;
         }
         .question-item {
             margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #007BFF;
+        }
+        .question-item:last-child {
+            border-bottom: none;
         }
         .correct {
             color: green;
@@ -115,6 +140,12 @@
         .incorrect {
             color: red;
             font-weight: bold;
+        }
+        .exam-title {
+            margin-top: 20px;
+            font-size: 1.5em;
+            text-align: center;
+            color: #007BFF;
         }
     </style>
 </head>
@@ -125,16 +156,20 @@
             <img id="profileImage" src="" alt="Profile Image">
             <button class="btn" id="logoutButton">Logout</button>
         </div>
-        <h1 id="examTitle"></h1>
+        <h1 id="examTitle" class="exam-title"></h1>
         <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <div class="navigation">
             <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
             <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
         </div>
-        <div id="result"></div>
+        <div id="result" class="result">
+            <div class="result-header">Quiz Results</div>
+            <div class="result-score" id="scoreDisplay"></div>
+            <div class="result-details" id="resultDetails"></div>
+            <div class="message" id="feedbackMessage"></div>
+        </div>
         <div class="chart-container" id="chartContainer"></div>
-        <div class="message" id="feedbackMessage"></div>
         <div class="question-list" id="questionList"></div>
     </div>
 
@@ -311,11 +346,11 @@
             const feedbackMessage = document.getElementById('feedbackMessage');
             const percentage = (score / (totalQuestions * 4)) * 100;
 
+            document.getElementById('scoreDisplay').innerText = `${score} / ${totalQuestions * 4}`;
+            document.getElementById('resultDetails').innerHTML = `<p>Total Questions: ${totalQuestions}</p>
+                                                                  <p>Correct Answers: ${score / 4}</p>
+                                                                  <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>
-                                   <p>Total Questions: ${totalQuestions}</p>
-                                   <p>Correct Answers: ${score / 4}</p>
-                                   <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
             // Save the score to the database
