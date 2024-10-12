@@ -25,6 +25,7 @@
             text-align: center;
             color: #007BFF;
             margin-bottom: 20px;
+            font-size: 2.5em;
         }
         .top-bar {
             display: flex;
@@ -45,31 +46,55 @@
         }
         .quiz {
             margin-bottom: 20px;
-            padding: 15px;
+            padding: 20px;
             border: 1px solid #007BFF;
             border-radius: 8px;
             background: #e9f7ff;
+            transition: transform 0.3s;
+        }
+        .quiz:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
         .question {
             font-weight: bold;
             margin-bottom: 10px;
+            font-size: 1.5em;
         }
         .options {
             margin: 10px 0;
+        }
+        .options label {
+            display: block;
+            padding: 5px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .options input[type="radio"] {
+            display: none; /* Hide radio buttons */
+        }
+        .options input[type="radio"]:checked + label {
+            background: #007BFF;
+            color: white;
         }
         .btn {
             background: #007BFF;
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.3s;
             margin-top: 10px;
+            font-size: 1.1em;
         }
         .btn:hover {
             background: #0056b3;
+            transform: translateY(-2px);
         }
         #result {
             display: none;
@@ -89,12 +114,13 @@
         }
         .message {
             margin: 20px 0;
-            font-size: 1.1em;
+            font-size: 1.2em;
         }
         .timer {
             text-align: center;
             font-size: 1.5em;
             color: #dc3545;
+            margin-bottom: 20px;
         }
         .question-list {
             text-align: left;
@@ -167,7 +193,6 @@
         let timer;
         let currentQuestion = 0;
 
-        // Load user profile
         function loadUserProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             const profileImage = document.getElementById('profileImage');
@@ -185,10 +210,8 @@
         function openProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
-                // User is logged in, show profile
                 alert('User Profile:\nName: ' + user.name);
             } else {
-                // Redirect to login page
                 window.location.href = 'login.html';
             }
         }
@@ -233,25 +256,20 @@
                     const radio = document.createElement('input');
                     radio.type = 'radio';
                     radio.name = `quiz_${index}`;
-                    radio.value = option; // Store the actual option text
-                    optionsElement.appendChild(radio);
+                    radio.value = option;
+                    label.prepend(radio); // Use label to wrap input and text
+
                     optionsElement.appendChild(label);
-                    optionsElement.appendChild(document.createElement('br'));
                 });
 
                 quizElement.appendChild(questionElement);
                 quizElement.appendChild(optionsElement);
                 quizContainer.appendChild(quizElement);
                 
-                if (index === quizzes.length - 1) {
-                    document.getElementById('nextButton').style.display = 'none';
-                    document.getElementById('submitButton').style.display = 'inline-block';
-                } else {
-                    document.getElementById('nextButton').style.display = 'inline-block';
-                    document.getElementById('submitButton').style.display = 'none';
-                }
+                document.getElementById('nextButton').style.display = index === quizzes.length - 1 ? 'none' : 'inline-block';
+                document.getElementById('submitButton').style.display = index === quizzes.length - 1 ? 'inline-block' : 'none';
 
-                startTimer(60); // Start timer for each question
+                startTimer(60);
             }
         }
 
@@ -266,7 +284,7 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    nextQuestion(); // Auto proceed when time is up
+                    nextQuestion();
                 }
             }, 1000);
         }
@@ -274,7 +292,7 @@
         function nextQuestion() {
             const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
             if (selectedOption) {
-                quizzes[currentQuestion].selectedOption = selectedOption.value; // Save selected option
+                quizzes[currentQuestion].selectedOption = selectedOption.value;
             }
             currentQuestion++;
             showQuestion(currentQuestion);
@@ -328,7 +346,6 @@
             resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
-            // Display chart
             const ctx = document.createElement('canvas');
             document.getElementById('chartContainer').appendChild(ctx);
             const chart = new Chart(ctx, {
@@ -350,7 +367,7 @@
                 }
             });
 
-            document.getElementById('quizContainer').style.display = 'none'; // Hide quiz
+            document.getElementById('quizContainer').style.display = 'none';
         }
 
         window.onload = function() {
