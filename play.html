@@ -124,7 +124,7 @@
 <body>
     <div class="container">
         <h1 id="examTitle"></h1>
-        <div class="timer" id="timer">Time Left: <span id="time">30</span> seconds</div>
+        <div class="timer" id="timer">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
         <div id="result"></div>
@@ -155,7 +155,7 @@
 
         let quizzes = [];
         let timer;
-        let timeLeft = 30;
+        let currentQuestion = 0;
 
         function loadQuiz() {
             database.ref(`exams/${examKey}/quizzes`).once('value').then(snapshot => {
@@ -164,7 +164,6 @@
                     quizzes.push({ key: childSnapshot.key, ...childSnapshot.val() });
                 });
                 displayQuiz();
-                startTimer();
             }).catch(error => {
                 document.getElementById('result').innerText = `Error loading quizzes: ${error.message}`;
             });
@@ -177,7 +176,15 @@
             examTitle.innerText = quizzes.length > 0 ? quizzes[0].title : "No Quizzes Available";
             quizContainer.innerHTML = '';
 
-            quizzes.forEach((quiz, index) => {
+            showQuestion(currentQuestion);
+        }
+
+        function showQuestion(index) {
+            if (index < quizzes.length) {
+                const quiz = quizzes[index];
+                const quizContainer = document.getElementById('quizContainer');
+                quizContainer.innerHTML = '';
+
                 const quizElement = document.createElement('div');
                 quizElement.classList.add('quiz');
 
@@ -203,13 +210,20 @@
                 quizElement.appendChild(questionElement);
                 quizElement.appendChild(optionsElement);
                 quizContainer.appendChild(quizElement);
-            });
+
+                startTimer(60); // Start timer for each question
+            }
         }
 
-        function startTimer() {
+        function startTimer(duration) {
+            let timeLeft = duration;
+            document.getElementById('time').innerText = timeLeft;
+
+            clearInterval(timer);
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('time').innerText = timeLeft;
+
                 if (timeLeft <= 0) {
                     clearInterval(timer);
                     submitQuiz();
@@ -230,7 +244,7 @@
 
                 const questionItem = document.createElement('div');
                 questionItem.classList.add('question-item');
-                
+
                 if (selectedOption) {
                     const userAnswer = selectedOption.value;
                     const result = document.createElement('div');
@@ -248,11 +262,10 @@
                                             <strong>Your Answer:</strong> <span class="red">${userAnswer}</span><br>
                                             <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                     }
-
                     questionItem.appendChild(result);
                 } else {
                     questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                              <strong>Your Answer:</strong> <span class="red">Not Answered</span><br>
+                                              <strong>Your Answer:</strong> <span class="red">No answer</span><br>
                                               <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                 }
 
@@ -280,7 +293,7 @@
                     labels: ['Correct Answers', 'Incorrect Answers'],
                     datasets: [{
                         label: 'Results',
-                        data: [score > 0 ? score : 0, Math.abs(score) > totalQuestions ? Math.abs(score) : totalQuestions - (score / 4)],
+                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
                         backgroundColor: ['#28a745', '#dc3545'],
                     }]
                 },
@@ -292,6 +305,8 @@
                     }
                 }
             });
+
+            document.getElementById('quizContainer').style.display = 'none'; // Hide quiz
         }
 
         window.onload = loadQuiz;
