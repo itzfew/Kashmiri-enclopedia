@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+        }
+        .profile {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile h2 {
+            font-size: 1.5em;
+            margin: 0;
+            color: #007BFF;
+        }
+        .profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
+        .btn {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        .quiz {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            background: #e9f7ff;
+        }
+        .timer {
+            text-align: center;
+            font-size: 1.5em;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        #result {
+            display: none;
+            text-align: center;
+            border: 2px solid #007BFF;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            background: #e7f0ff;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 90%;
+            margin-top: 20px;
+        }
+        .message {
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #555;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .navigation button {
+            flex: 1;
+            margin: 0 10px;
+        }
+        .question-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .question-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        .highlight {
+            background-color: #e0ffe0;
+        }
+        .wrong-highlight {
+            background-color: #ffe0e0;
+        }
+        @media (max-width: 600px) {
+            .profile {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .profile img {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile" id="profile">
+            <h2 id="profileName"></h2>
+            <img id="profileImage" src="default-image.png" alt="Profile Image">
+            <button class="btn" id="logoutButton">Logout</button>
+            <button class="btn" id="leaderboardButton" onclick="window.location.href='leaderboard.html'">Leaderboard</button>
+        </div>
+        <h1 id="examTitle"></h1>
+        <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
+        <div id="quizContainer"></div>
+        <div class="navigation">
+            <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
+            <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
+        </div>
+        <div id="result"></div>
+        <div class="chart-container" id="chartContainer"></div>
+        <div class="message" id="feedbackMessage"></div>
+        <div class="question-list" id="questionList"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const urlParams = new URLSearchParams(window.location.search);
+        const examKey = urlParams.get('examKey');
+
+        let quizzes = [];
+        let timer;
+        let currentQuestion = 0;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadUserProfile(user);
+                loadQuiz();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function loadUserProfile(user) {
+            document.getElementById('profileName').innerText = user.displayName || "User";
+            document.getElementById('profileImage').src = user.photoURL || 'default-image.png';
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = 'index.html';
+                });
+            });
+        }
+
+        function loadQuiz() {
+            database.ref(`exams/${examKey}/quizzes`).once('value').then(snapshot => {
+                quizzes = [];
+                snapshot.forEach(childSnapshot => {
+                    quizzes.push({ key: childSnapshot.key, ...childSnapshot.val() });
+                });
+                displayQuiz();
+            }).catch(error => {
+                document.getElementById('result').innerText = `Error loading quizzes: ${error.message}`;
+            });
+        }
+
+        function displayQuiz() {
+            const examTitle = document.getElementById('examTitle');
+            examTitle.innerText = quizzes.length > 0 ? quizzes[0].title : "No Quizzes Available";
+            showQuestion(currentQuestion);
+        }
+
+        function showQuestion(index) {
+            if (index < quizzes.length) {
+                const quiz = quizzes[index];
+                const quizContainer = document.getElementById('quizContainer');
+                quizContainer.innerHTML = '';
+
+                const quizElement = document.createElement('div');
+                quizElement.classList.add('quiz');
+
+                const questionElement = document.createElement('div');
+                questionElement.classList.add('question');
+                questionElement.innerText = `${index + 1}. ${quiz.question}`;
+
+                const optionsElement = document.createElement('div');
+                optionsElement.classList.add('options');
+
+                quiz.options.forEach((option, i) => {
+                    const label = document.createElement('label');
+                    label.innerText = option;
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `quiz_${index}`;
+                    radio.value = option;
+                    optionsElement.appendChild(radio);
+                    optionsElement.appendChild(label);
+                    optionsElement.appendChild(document.createElement('br'));
+                });
+
+                quizElement.appendChild(questionElement);
+                quizElement.appendChild(optionsElement);
+                quizContainer.appendChild(quizElement);
+
+                document.getElementById('nextButton').style.display = index === quizzes.length - 1 ? 'none' : 'inline-block';
+                document.getElementById('submitButton').style.display = index === quizzes.length - 1 ? 'inline-block' : 'none';
+
+                startTimer(60);
+            }
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            document.getElementById('time').innerText = timeLeft;
+            document.getElementById('timer').style.display = 'block';
+
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
+            if (selectedOption) {
+                quizzes[currentQuestion].selectedOption = selectedOption.value;
+            }
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        }
+
+        function submitQuiz() {
+            clearInterval(timer);
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = '';
+            let score = 0;
+            const totalQuestions = quizzes.length;
+
+            quizzes.forEach(quiz => {
+                const questionItem = document.createElement('div');
+                questionItem.classList.add('question-item');
+
+                const correctOption = quiz.options[quiz.correctOption - 1];
+                const userAnswer = quiz.selectedOption || 'No answer';
+
+                if (quiz.selectedOption === correctOption) {
+                    score += 4;
+                    questionItem.classList.add('highlight');
+                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                              <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
+                                              <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                } else {
+                    if (quiz.selectedOption) {
+                        score -= 1;
+                        questionItem.classList.add('wrong-highlight');
+                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                                  <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                    } else {
+                        questionItem.classList.add('wrong-highlight');
+                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                                  <strong>Your Answer:</strong> <span class="incorrect">No answer</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                    }
+                }
+
+                questionList.appendChild(questionItem);
+            });
+
+            showResults(score, totalQuestions);
+        }
+
+        function showResults(score, totalQuestions) {
+            const resultDiv = document.getElementById('result');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            const percentage = (score / (totalQuestions * 4)) * 100;
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h2 style="color: ${percentage >= 75 ? 'green' : 'red'};">Your Score: ${score} / ${totalQuestions * 4}</h2>
+                                   <p>Total Questions: ${totalQuestions}</p>
+                                   <p>Correct Answers: ${score / 4}</p>
+                                   <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
+
+            feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
+
+            const user = auth.currentUser;
+            if (user) {
+                const scoreData = {
+                    username: user.displayName || "User",
+                    email: user.email,
+                    score: score,
+                    examName: quizzes[0].title,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                database.ref(`scores/${user.uid}`).push(scoreData).then(() => {
+                    console.log("Score saved successfully.");
+                }).catch(error => {
+                    console.error("Error saving score: ", error);
+                });
+            }
+
+            const correctAnswers = score / 4;
+            const incorrectAnswers = totalQuestions - correctAnswers;
+
+            const ctx = document.createElement('canvas');
+            document.getElementById('chartContainer').appendChild(ctx);
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct Answers', 'Incorrect Answers'],
+                    datasets: [{
+                        label: 'Results',
+                        data: [correctAnswers, incorrectAnswers],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('quizContainer').style.display = 'none';
+        }
+
+        window.onload = function() {
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>
