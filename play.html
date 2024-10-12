@@ -270,10 +270,8 @@
 
         function submitQuiz() {
             clearInterval(timer);
-            const questionList = document.createElement('div');
-            questionList.className = 'question-list';
-            document.getElementById('quizContainer').appendChild(questionList);
-
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = ''; // Clear previous question list
             let score = 0;
             const totalQuestions = quizzes.length;
 
@@ -314,7 +312,10 @@
             const percentage = (score / (totalQuestions * 4)) * 100;
 
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
+            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>
+                                   <p>Total Questions: ${totalQuestions}</p>
+                                   <p>Correct Answers: ${score / 4}</p>
+                                   <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
             // Save the score to the database
