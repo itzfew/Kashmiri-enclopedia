@@ -4,32 +4,143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+        }
+        .leaderboard {
+            margin-top: 20px;
+        }
+        .leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .leaderboard th, .leaderboard td {
+            border: 1px solid #007BFF;
+            padding: 10px;
+            text-align: center;
+        }
+        .leaderboard th {
+            background: #007BFF;
+            color: white;
+        }
+        .no-scores {
+            color: #777;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Leaderboard</h1>
-        <div id="leaderboard"></div>
+        <div class="leaderboard">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Exam Name</th>
+                        <th>Score</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr>
+                        <td colspan="5" class="no-scores">Loading scores...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <script src="firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
-        function loadLeaderboard() {
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '';
+        const firebaseConfig = {
+            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+            authDomain: "eduhub-a3762.firebaseapp.com",
+            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+            projectId: "eduhub-a3762",
+            storageBucket: "eduhub-a3762.appspot.com",
+            messagingSenderId: "115221366217",
+            appId: "1:115221366217:web:d6cee26ef04752d1519418",
+            measurementId: "G-X1MQF5SR3Z"
+        };
 
-            database.ref('scores').once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const scoreData = childSnapshot.val();
-                    const scoreItem = document.createElement('div');
-                    scoreItem.className = 'score-item';
-                    scoreItem.innerText = `${scoreData.username}: ${scoreData.score} points`;
-                    leaderboard.appendChild(scoreItem);
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function loadLeaderboard() {
+            const leaderboardRef = database.ref('scores');
+            leaderboardRef.once('value').then(snapshot => {
+                const leaderboardBody = document.getElementById('leaderboardBody');
+                leaderboardBody.innerHTML = ''; // Clear previous scores
+
+                let scoresArray = [];
+                snapshot.forEach(userSnapshot => {
+                    userSnapshot.forEach(scoreSnapshot => {
+                        const scoreData = scoreSnapshot.val();
+                        const examName = scoreData.examName || "Unknown Exam"; // Adjust based on your database structure
+                        scoresArray.push({
+                            username: scoreData.username || "Anonymous",
+                            email: scoreData.email,
+                            examName: examName,
+                            score: scoreData.score,
+                            timestamp: scoreData.timestamp
+                        });
+                    });
                 });
+
+                // Sort scores in descending order
+                scoresArray.sort((a, b) => b.score - a.score);
+
+                if (scoresArray.length > 0) {
+                    scoresArray.forEach(data => {
+                        const row = document.createElement('tr');
+                        const date = new Date(data.timestamp);
+
+                        row.innerHTML = `
+                            <td>${data.username}</td>
+                            <td>${data.email}</td>
+                            <td>${data.examName}</td>
+                            <td>${data.score}</td>
+                            <td>${date.toLocaleString()}</td>
+                        `;
+                        leaderboardBody.appendChild(row);
+                    });
+                } else {
+                    leaderboardBody.innerHTML = '<tr><td colspan="5" class="no-scores">No scores available.</td></tr>';
+                }
+            }).catch(error => {
+                console.error("Error loading leaderboard: ", error);
+                document.getElementById('leaderboardBody').innerHTML = '<tr><td colspan="5" class="no-scores">Error loading scores.</td></tr>';
             });
         }
 
-        window.onload = loadLeaderboard;
+        window.onload = function() {
+            loadLeaderboard();
+        };
     </script>
 </body>
-</html>
+</html> 
