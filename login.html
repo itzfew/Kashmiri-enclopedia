@@ -170,6 +170,7 @@
                     .then(userCredential => {
                         alert('Sign up successful!');
                         loadUserProfile(userCredential.user);
+                        saveUserToLocalStorage(userCredential.user, username);
                     })
                     .catch(error => {
                         alert(error.message);
@@ -183,6 +184,7 @@
                 .then(result => {
                     alert('Google sign-in successful!');
                     loadUserProfile(result.user);
+                    saveUserToLocalStorage(result.user);
                 })
                 .catch(error => {
                     alert(error.message);
@@ -197,11 +199,22 @@
             profileEmail.innerText = user.email;
         }
 
+        function saveUserToLocalStorage(user, username = '') {
+            const userData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || username,
+                photoURL: user.photoURL || 'default-image.png'
+            };
+            localStorage.setItem('user', JSON.stringify(userData));
+        }
+
         logoutButton.addEventListener('click', () => {
             auth.signOut().then(() => {
                 alert('Logged out successfully');
                 profileSection.style.display = 'none';
                 authForm.style.display = 'block';
+                localStorage.removeItem('user'); // Clear user data from local storage
             });
         });
 
