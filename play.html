@@ -3,33 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz</title>
+    <title>Quiz Game</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #f0f4f8;
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding: 20px;
             background: #fff;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
             color: #007BFF;
+            margin-bottom: 20px;
         }
         .quiz {
             margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #007BFF;
+            border-radius: 8px;
+            background: #e9f7ff;
         }
         .question {
             font-weight: bold;
+            margin-bottom: 10px;
         }
         .options {
             margin: 10px 0;
@@ -43,6 +48,7 @@
             cursor: pointer;
             width: 100%;
             transition: background 0.3s;
+            margin-top: 10px;
         }
         .btn:hover {
             background: #0056b3;
@@ -60,7 +66,8 @@
             position: relative;
             margin: auto;
             height: 40vh;
-            width: 80%;
+            width: 90%;
+            margin-top: 20px;
         }
         .result-stats {
             display: flex;
@@ -78,9 +85,20 @@
         }
         .green {
             background-color: #28a745;
+            color: white;
         }
         .red {
             background-color: #dc3545;
+            color: white;
+        }
+        .message {
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -91,7 +109,11 @@
         <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
         <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
+        <div class="message" id="feedbackMessage"></div>
     </div>
+    <footer>
+        <p>&copy; 2024 Quiz Game. All rights reserved.</p>
+    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
@@ -186,9 +208,13 @@
 
         function showResult(score, totalQuestions) {
             const resultElement = document.getElementById('result');
+            const feedbackMessage = document.getElementById('feedbackMessage');
             const totalCorrect = Math.max(0, score / 4); // Each correct answer gives 4 points
             const totalIncorrect = totalQuestions - totalCorrect;
             const totalScore = score < 0 ? 0 : score;
+
+            feedbackMessage.innerText = totalScore > 0 ? "Great job!" : "Keep trying!";
+            feedbackMessage.style.color = totalScore > 0 ? "#28a745" : "#dc3545";
 
             resultElement.innerHTML = `
                 <h2>Your Results</h2>
@@ -227,7 +253,7 @@
                         },
                         title: {
                             display: true,
-                            text: 'Quiz Results'
+                            text: 'Quiz Results Breakdown'
                         }
                     }
                 }
