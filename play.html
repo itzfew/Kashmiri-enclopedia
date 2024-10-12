@@ -143,6 +143,7 @@
         <div class="chart-container" id="chartContainer"></div>
         <div class="message" id="feedbackMessage"></div>
         <div class="question-list" id="questionList"></div>
+        <button class="btn" id="retakeButton" onclick="retakeQuiz()" style="display: none;">Retake Quiz</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -169,7 +170,6 @@
         let timer;
         let currentQuestion = 0;
 
-        // Load user profile
         function loadUserProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             const profileImage = document.getElementById('profileImage');
@@ -311,7 +311,21 @@
                 questionList.appendChild(questionItem);
             });
 
+            saveScore(score, totalQuestions);
             showResults(score, totalQuestions);
+        }
+
+        function saveScore(score, totalQuestions) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                database.ref(`users/${user.name}/scores`).push({
+                    examKey: examKey,
+                    score: score,
+                    timestamp: Date.now()
+                }).catch(error => {
+                    console.error('Error saving score:', error);
+                });
+            }
         }
 
         function showResults(score, totalQuestions) {
@@ -345,6 +359,16 @@
             });
 
             document.getElementById('quizContainer').style.display = 'none';
+            document.getElementById('retakeButton').style.display = 'inline-block';
+        }
+
+        function retakeQuiz() {
+            currentQuestion = 0;
+            document.getElementById('questionList').innerHTML = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('chartContainer').innerHTML = '';
+            document.getElementById('quizContainer').style.display = 'block';
+            loadQuiz();
         }
 
         window.onload = function() {
