@@ -3,98 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Web App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Exam List</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             color: #333;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
-        .app-container {
-            max-width: 900px;
+        .container {
+            max-width: 600px;
             margin: auto;
             padding: 20px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-        header {
-            text-align: center;
-            padding: 20px 0;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 10px 10px 0 0;
-        }
-        header h1 {
-            margin: 0;
-        }
-        nav {
-            margin-top: 10px;
-        }
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        main {
-            margin: 20px 0;
-        }
-        .exams-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .exam-card {
-            padding: 20px;
-            border: 2px solid #007BFF;
+            background: #fff;
             border-radius: 8px;
-            background-color: #e3f2fd;
-            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 10px;
+            margin: 10px 0;
+            background: #007BFF;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
             cursor: pointer;
         }
-        .exam-card:hover {
-            background-color: #bbdefb;
-            transform: scale(1.02);
+        li:hover {
+            background: #0056b3;
         }
-        footer {
+        .status {
             text-align: center;
-            margin-top: 30px;
-            padding: 10px 0;
+            margin: 10px 0;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>Quiz Web App</h1>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="play.html">Play Quiz</a>
-                <a href="results.html">Results</a>
-            </nav>
-        </header>
-        
-        <main>
-            <h2>Select an Exam</h2>
-            <div id="examsContainer" class="exams-container"></div>
-        </main>
-
-        <footer>
-            <p>&copy; 2024 Quiz Web App</p>
-        </footer>
+    <div class="container">
+        <h1>Available Exams</h1>
+        <ul id="examList"></ul>
+        <div id="status" class="status"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
             authDomain: "eduhub-a3762.firebaseapp.com",
@@ -106,34 +69,28 @@
             measurementId: "G-X1MQF5SR3Z"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Load exams from Firebase
         function loadExams() {
-            const examsContainer = document.getElementById('examsContainer');
-            examsContainer.innerHTML = '';
+            const examList = document.getElementById('examList');
+            examList.innerHTML = '';
 
             database.ref('exams').once('value').then(snapshot => {
                 snapshot.forEach(childSnapshot => {
                     const examData = childSnapshot.val();
-                    const examCard = document.createElement('div');
-                    examCard.className = 'exam-card';
-                    examCard.innerText = examData.title;
-                    examCard.onclick = () => startQuiz(childSnapshot.key);
-                    examsContainer.appendChild(examCard);
+                    const listItem = document.createElement('li');
+                    listItem.innerText = examData.title;
+                    listItem.onclick = () => {
+                        window.location.href = `play.html?examKey=${childSnapshot.key}`;
+                    };
+                    examList.appendChild(listItem);
                 });
             }).catch(error => {
-                console.error('Error loading exams:', error);
+                document.getElementById('status').innerText = `Error loading exams: ${error.message}`;
             });
         }
 
-        function startQuiz(examId) {
-            window.location.href = `play.html?examId=${examId}`;
-        }
-
-        // Load exams on page load
         window.onload = loadExams;
     </script>
 </body>
