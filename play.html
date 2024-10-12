@@ -28,6 +28,22 @@
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
         }
+        .profile {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile h2 {
+            font-size: 1.5em;
+            margin: 0;
+            color: #007BFF;
+        }
+        .profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
         .btn {
             background: #007BFF;
             color: white;
@@ -85,22 +101,31 @@
             flex: 1;
             margin: 0 10px;
         }
-        .profile {
-            display: none;
-            text-align: center;
-            margin-bottom: 20px;
+        .question-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .question-item {
+            margin: 10px 0;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 id="examTitle"></h1>
         <div class="profile" id="profile">
-            <h2>Welcome, <span id="profileName"></span>!</h2>
-            <img id="profileImage" src="" alt="Profile Image" style="border-radius: 50%; width: 50px; height: 50px;">
-            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+            <h2 id="profileName"></h2>
+            <img id="profileImage" src="" alt="Profile Image">
             <button class="btn" id="logoutButton">Logout</button>
         </div>
+        <h1 id="examTitle"></h1>
         <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <div class="navigation">
@@ -110,6 +135,7 @@
         <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
         <div class="message" id="feedbackMessage"></div>
+        <div class="question-list" id="questionList"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -149,9 +175,7 @@
         });
 
         function loadUserProfile(user) {
-            document.getElementById('profile').style.display = 'block';
             document.getElementById('profileName').innerText = user.displayName || "User";
-            document.getElementById('profileEmail').innerText = user.email;
             document.getElementById('profileImage').src = user.photoURL || 'default-image.png';
 
             document.getElementById('logoutButton').addEventListener('click', () => {
@@ -310,6 +334,9 @@
                 });
             }
 
+            const correctAnswers = score / 4;
+            const incorrectAnswers = totalQuestions - correctAnswers;
+
             const ctx = document.createElement('canvas');
             document.getElementById('chartContainer').appendChild(ctx);
             const chart = new Chart(ctx, {
@@ -318,7 +345,7 @@
                     labels: ['Correct Answers', 'Incorrect Answers'],
                     datasets: [{
                         label: 'Results',
-                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
+                        data: [correctAnswers, incorrectAnswers],
                         backgroundColor: ['#28a745', '#dc3545'],
                     }]
                 },
