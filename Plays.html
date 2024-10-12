@@ -284,8 +284,15 @@
             if (selectedOption) {
                 quizzes[currentQuestion].selectedOption = selectedOption.value;
             }
-            currentQuestion++;
-            showQuestion(currentQuestion);
+
+            // Check if we are on the last question
+            if (currentQuestion < quizzes.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                // If it is the last question, automatically submit the quiz
+                submitQuiz();
+            }
         }
 
         function submitQuiz() {
