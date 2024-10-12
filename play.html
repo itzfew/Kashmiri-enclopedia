@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Game</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #f0f4f8;
             margin: 0;
             padding: 20px;
@@ -66,7 +65,7 @@
         }
         .options label {
             display: block;
-            padding: 5px;
+            padding: 10px;
             border-radius: 5px;
             background: #f8f9fa;
             margin: 5px 0;
@@ -105,17 +104,6 @@
             margin-top: 20px;
             background: #e7f0ff;
         }
-        .chart-container {
-            position: relative;
-            margin: auto;
-            height: 40vh;
-            width: 90%;
-            margin-top: 20px;
-        }
-        .message {
-            margin: 20px 0;
-            font-size: 1.2em;
-        }
         .timer {
             text-align: center;
             font-size: 1.5em;
@@ -141,10 +129,6 @@
             background-color: #dc3545;
             color: white;
         }
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-        }
     </style>
 </head>
 <body>
@@ -164,14 +148,11 @@
             <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
         </div>
         <div id="result"></div>
-        <div class="chart-container" id="chartContainer"></div>
-        <div class="message" id="feedbackMessage"></div>
         <div class="question-list" id="questionList"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
@@ -199,7 +180,7 @@
             const profileName = document.getElementById('profileName');
 
             if (user) {
-                profileImage.src = user.profileImage || 'default-image.png'; // Replace with a default image
+                profileImage.src = user.profileImage || 'default-image.png';
                 profileImage.style.display = 'inline-block';
                 profileName.innerText = user.name;
             } else {
@@ -339,33 +320,16 @@
 
         function showResults(score, totalQuestions) {
             const resultDiv = document.getElementById('result');
-            const feedbackMessage = document.getElementById('feedbackMessage');
-            const percentage = (score / (totalQuestions * 4)) * 100;
+            const percentage = Math.round((score / (totalQuestions * 4)) * 100);
+            const correctAnswers = Math.floor(score / 4);
+            const incorrectAnswers = totalQuestions - correctAnswers;
 
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
-            feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
-
-            const ctx = document.createElement('canvas');
-            document.getElementById('chartContainer').appendChild(ctx);
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Correct Answers', 'Incorrect Answers'],
-                    datasets: [{
-                        label: 'Results',
-                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
-                        backgroundColor: ['#28a745', '#dc3545'],
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
+            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>
+                                   <h3>Correct Answers: ${correctAnswers}</h3>
+                                   <h3>Incorrect Answers: ${incorrectAnswers}</h3>
+                                   <h3>Percentage: ${percentage}%</h3>`;
+            resultDiv.innerHTML += percentage >= 75 ? "<p>Great job! 🎉</p>" : "<p>Keep trying! You'll get there!</p>";
 
             document.getElementById('quizContainer').style.display = 'none';
         }
