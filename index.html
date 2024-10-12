@@ -43,6 +43,19 @@
             width: 50px;
             height: 50px;
         }
+        .btn {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #357ABD;
+        }
         ul {
             list-style: none;
             padding: 0;
@@ -87,7 +100,10 @@
     <div class="profile">
         <h2 id="profileName"></h2>
         <img id="profileImage" src="default-image.png" alt="Profile Image">
-        <button class="btn" id="logoutButton" style="background: #e53e3e; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Logout</button>
+        <div>
+            <button class="btn" id="logoutButton">Logout</button>
+            <button class="btn" id="leaderboardButton">Leaderboard</button> <!-- Leaderboard Button -->
+        </div>
     </div>
     <h1>Available Exams</h1>
     <ul id="examList"></ul>
@@ -117,7 +133,7 @@
                 loadUserProfile(user);
                 loadExams();
             } else {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html'; // Redirect to login.html if not logged in
             }
         });
 
@@ -127,8 +143,12 @@
 
             document.getElementById('logoutButton').addEventListener('click', () => {
                 auth.signOut().then(() => {
-                    window.location.href = 'index.html';
+                    window.location.href = 'login.html'; // Redirect to login.html on logout
                 });
+            });
+
+            document.getElementById('leaderboardButton').addEventListener('click', () => {
+                window.location.href = 'leaderboard.html'; // Redirect to leaderboard.html
             });
         }
 
