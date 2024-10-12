@@ -259,7 +259,7 @@
 
                 const correctOption = quiz.options[quiz.correctOption - 1];
                 const userAnswer = quiz.selectedOption || 'No answer';
-                
+
                 if (quiz.selectedOption === correctOption) {
                     score += 4;
                     questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
@@ -292,6 +292,23 @@
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
+
+            // Save the score to the database
+            const user = auth.currentUser;
+            if (user) {
+                const scoreData = {
+                    username: user.displayName || "User",
+                    email: user.email,
+                    score: score,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                database.ref(`scores/${user.uid}`).push(scoreData).then(() => {
+                    console.log("Score saved successfully.");
+                }).catch(error => {
+                    console.error("Error saving score: ", error);
+                });
+            }
 
             const ctx = document.createElement('canvas');
             document.getElementById('chartContainer').appendChild(ctx);
