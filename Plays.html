@@ -285,12 +285,15 @@
                 quizzes[currentQuestion].selectedOption = selectedOption.value;
             }
 
-            // Check if we are on the last question
+            // Move to next question or submit if it's the last
             if (currentQuestion < quizzes.length - 1) {
                 currentQuestion++;
                 showQuestion(currentQuestion);
             } else {
-                // If it is the last question, automatically submit the quiz
+                // Before submitting, ensure the last question's answer is captured
+                if (selectedOption) {
+                    quizzes[currentQuestion].selectedOption = selectedOption.value;
+                }
                 submitQuiz();
             }
         }
