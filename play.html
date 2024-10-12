@@ -3,53 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz App</title>
+    <title>Quiz Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #eaeef2;
+            background-color: #f0f4f8;
             margin: 0;
-            padding: 0;
+            padding: 20px;
         }
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: auto;
             padding: 20px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            position: relative;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
             color: #007BFF;
             margin-bottom: 20px;
             font-size: 2.5em;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
         }
         .profile {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #007BFF;
             margin-bottom: 20px;
         }
         .profile h2 {
             font-size: 1.5em;
-            color: #333;
             margin: 0;
+            color: #007BFF;
         }
         .profile img {
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
         }
         .btn {
             background: #007BFF;
             color: white;
             border: none;
-            padding: 12px 16px;
+            padding: 12px 18px;
             border-radius: 5px;
             cursor: pointer;
             transition: background 0.3s, transform 0.2s;
@@ -62,10 +61,9 @@
         .quiz {
             margin-bottom: 20px;
             padding: 20px;
-            border: 1px solid #007BFF;
+            border: 2px solid #007BFF;
             border-radius: 8px;
-            background: #f0f7ff;
-            position: relative;
+            background: #e9f7ff;
         }
         .timer {
             text-align: center;
@@ -76,22 +74,18 @@
         #result {
             display: none;
             text-align: center;
-            border: 1px solid #007BFF;
+            border: 2px solid #007BFF;
             border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
-            background: #f7f9fc;
+            background: #e7f0ff;
         }
-        .result-header {
-            font-size: 1.8em;
-            color: #007BFF;
-            margin-bottom: 15px;
-        }
-        .result-score {
-            font-size: 2em;
-            font-weight: bold;
-            color: #28a745;
-            margin-bottom: 10px;
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 90%;
+            margin-top: 20px;
         }
         .message {
             margin: 20px 0;
@@ -110,18 +104,13 @@
         .question-list {
             text-align: left;
             margin-top: 20px;
-            border: 1px solid #007BFF;
-            border-radius: 8px;
-            padding: 10px;
-            background: #f9f9f9;
         }
         .question-item {
             margin: 10px 0;
             padding: 10px;
-            border-bottom: 1px solid #007BFF;
-        }
-        .question-item:last-child {
-            border-bottom: none;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
         }
         .correct {
             color: green;
@@ -131,17 +120,20 @@
             color: red;
             font-weight: bold;
         }
-        .exam-title {
-            margin-top: 20px;
-            font-size: 1.5em;
-            text-align: center;
-            color: #007BFF;
+        .highlight {
+            background-color: #e0ffe0;
         }
-        .chart-container {
-            margin-top: 20px;
-            position: relative;
-            height: 40vh;
-            width: 100%;
+        .wrong-highlight {
+            background-color: #ffe0e0;
+        }
+        @media (max-width: 600px) {
+            .profile {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .profile img {
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
@@ -152,19 +144,16 @@
             <img id="profileImage" src="" alt="Profile Image">
             <button class="btn" id="logoutButton">Logout</button>
         </div>
-        <h1 id="examTitle" class="exam-title"></h1>
+        <h1 id="examTitle"></h1>
         <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <div class="navigation">
             <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
             <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
         </div>
-        <div id="result" class="result">
-            <div class="result-header">Quiz Results</div>
-            <div class="result-score" id="scoreDisplay"></div>
-            <div class="message" id="feedbackMessage"></div>
-        </div>
+        <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
+        <div class="message" id="feedbackMessage"></div>
         <div class="question-list" id="questionList"></div>
     </div>
 
@@ -300,7 +289,7 @@
         function submitQuiz() {
             clearInterval(timer);
             const questionList = document.getElementById('questionList');
-            questionList.innerHTML = ''; // Clear previous question list
+            questionList.innerHTML = '';
             let score = 0;
             const totalQuestions = quizzes.length;
 
@@ -313,16 +302,19 @@
 
                 if (quiz.selectedOption === correctOption) {
                     score += 4;
+                    questionItem.classList.add('highlight');
                     questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                               <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
                                               <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
                 } else {
                     if (quiz.selectedOption) {
                         score -= 1;
+                        questionItem.classList.add('wrong-highlight');
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                                   <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
                                                   <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
                     } else {
+                        questionItem.classList.add('wrong-highlight');
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                                   <strong>Your Answer:</strong> <span class="incorrect">No answer</span><br>
                                                   <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
@@ -340,21 +332,21 @@
             const feedbackMessage = document.getElementById('feedbackMessage');
             const percentage = (score / (totalQuestions * 4)) * 100;
 
-            document.getElementById('scoreDisplay').innerText = `${score} / ${totalQuestions * 4}`;
-            document.getElementById('resultDetails').innerHTML = `<p>Total Questions: ${totalQuestions}</p>
-                                                                  <p>Correct Answers: ${score / 4}</p>
-                                                                  <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
             resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h2 style="color: ${percentage >= 75 ? 'green' : 'red'};">Your Score: ${score} / ${totalQuestions * 4}</h2>
+                                   <p>Total Questions: ${totalQuestions}</p>
+                                   <p>Correct Answers: ${score / 4}</p>
+                                   <p>Incorrect Answers: ${totalQuestions - (score / 4)}</p>`;
+
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
-            // Save the score to the database
             const user = auth.currentUser;
             if (user) {
                 const scoreData = {
                     username: user.displayName || "User",
                     email: user.email,
                     score: score,
-                    examName: quizzes[0].title, // Save the exam name
+                    examName: quizzes[0].title,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
 
