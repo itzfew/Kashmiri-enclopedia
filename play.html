@@ -53,6 +53,7 @@
             cursor: pointer;
             transition: background 0.3s, transform 0.2s;
             font-size: 1em;
+            margin-left: 10px;
         }
         .btn:hover {
             background: #0056b3;
@@ -141,8 +142,9 @@
     <div class="container">
         <div class="profile" id="profile">
             <h2 id="profileName"></h2>
-            <img id="profileImage" src="" alt="Profile Image">
+            <img id="profileImage" src="default-image.png" alt="Profile Image">
             <button class="btn" id="logoutButton">Logout</button>
+            <button class="btn" id="leaderboardButton" onclick="window.location.href='leaderboard.html'">Leaderboard</button>
         </div>
         <h1 id="examTitle"></h1>
         <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
