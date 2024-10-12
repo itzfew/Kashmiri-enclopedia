@@ -95,6 +95,7 @@
             text-align: center;
             font-size: 1.5em;
             color: #dc3545;
+            margin-bottom: 20px;
         }
         .question-list {
             text-align: left;
@@ -118,6 +119,7 @@
         .navigation {
             display: flex;
             justify-content: space-between;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -126,8 +128,8 @@
         <div class="top-bar">
             <a href="leaderboard.html" class="btn">Leaderboard</a>
             <div class="profile" id="profile" onclick="openProfile()">
-                <img id="profileImage" src="" alt="Profile Image" style="display:none;">
-                <span id="profileName"></span>
+                <img id="profileImage" src="default-image.png" alt="Profile Image">
+                <span id="profileName">Login</span>
             </div>
         </div>
         <h1 id="examTitle"></h1>
@@ -174,7 +176,7 @@
             const profileName = document.getElementById('profileName');
 
             if (user) {
-                profileImage.src = user.profileImage || 'default-image.png'; // Replace with a default image
+                profileImage.src = user.profileImage || 'default-image.png';
                 profileImage.style.display = 'inline-block';
                 profileName.innerText = user.name;
             } else {
@@ -185,10 +187,8 @@
         function openProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
-                // User is logged in, show profile
                 alert('User Profile:\nName: ' + user.name);
             } else {
-                // Redirect to login page
                 window.location.href = 'login.html';
             }
         }
@@ -233,7 +233,7 @@
                     const radio = document.createElement('input');
                     radio.type = 'radio';
                     radio.name = `quiz_${index}`;
-                    radio.value = option; // Store the actual option text
+                    radio.value = option;
                     optionsElement.appendChild(radio);
                     optionsElement.appendChild(label);
                     optionsElement.appendChild(document.createElement('br'));
@@ -242,16 +242,11 @@
                 quizElement.appendChild(questionElement);
                 quizElement.appendChild(optionsElement);
                 quizContainer.appendChild(quizElement);
-                
-                if (index === quizzes.length - 1) {
-                    document.getElementById('nextButton').style.display = 'none';
-                    document.getElementById('submitButton').style.display = 'inline-block';
-                } else {
-                    document.getElementById('nextButton').style.display = 'inline-block';
-                    document.getElementById('submitButton').style.display = 'none';
-                }
 
-                startTimer(60); // Start timer for each question
+                document.getElementById('nextButton').style.display = index === quizzes.length - 1 ? 'none' : 'inline-block';
+                document.getElementById('submitButton').style.display = index === quizzes.length - 1 ? 'inline-block' : 'none';
+
+                startTimer(60);
             }
         }
 
@@ -266,7 +261,7 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    nextQuestion(); // Auto proceed when time is up
+                    nextQuestion();
                 }
             }, 1000);
         }
@@ -274,7 +269,7 @@
         function nextQuestion() {
             const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
             if (selectedOption) {
-                quizzes[currentQuestion].selectedOption = selectedOption.value; // Save selected option
+                quizzes[currentQuestion].selectedOption = selectedOption.value;
             }
             currentQuestion++;
             showQuestion(currentQuestion);
@@ -299,17 +294,17 @@
                     score += 4;
                     questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                               <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
-                                              <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
+                                              <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
                 } else {
                     if (quiz.selectedOption) {
                         score -= 1;
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                                   <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
-                                                  <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
                     } else {
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                                  <strong>Your Answer:</strong> <span class="red">No answer</span><br>
-                                                  <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
+                                                  <strong>Your Answer:</strong> <span class="incorrect">No answer</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
                     }
                 }
 
@@ -328,7 +323,6 @@
             resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
             feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
-            // Display chart
             const ctx = document.createElement('canvas');
             document.getElementById('chartContainer').appendChild(ctx);
             const chart = new Chart(ctx, {
@@ -350,7 +344,7 @@
                 }
             });
 
-            document.getElementById('quizContainer').style.display = 'none'; // Hide quiz
+            document.getElementById('quizContainer').style.display = 'none';
         }
 
         window.onload = function() {
