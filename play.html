@@ -115,6 +115,10 @@
             background-color: #dc3545;
             color: white;
         }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -129,7 +133,10 @@
         <h1 id="examTitle"></h1>
         <div class="timer" id="timer">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
-        <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
+        <div class="navigation">
+            <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
+            <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
+        </div>
         <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
         <div class="message" id="feedbackMessage"></div>
@@ -199,12 +206,8 @@
         }
 
         function displayQuiz() {
-            const quizContainer = document.getElementById('quizContainer');
             const examTitle = document.getElementById('examTitle');
-
             examTitle.innerText = quizzes.length > 0 ? quizzes[0].title : "No Quizzes Available";
-            quizContainer.innerHTML = '';
-
             showQuestion(currentQuestion);
         }
 
@@ -239,13 +242,21 @@
                 quizElement.appendChild(questionElement);
                 quizElement.appendChild(optionsElement);
                 quizContainer.appendChild(quizElement);
+                
+                if (index === quizzes.length - 1) {
+                    document.getElementById('nextButton').style.display = 'none';
+                    document.getElementById('submitButton').style.display = 'inline-block';
+                } else {
+                    document.getElementById('nextButton').style.display = 'inline-block';
+                    document.getElementById('submitButton').style.display = 'none';
+                }
 
                 startTimer(60); // Start timer for each question
             }
         }
 
-        function startTimer(duration) {
-            let timeLeft = duration;
+        function startTimer(seconds) {
+            let timeLeft = seconds;
             document.getElementById('time').innerText = timeLeft;
 
             clearInterval(timer);
@@ -255,42 +266,51 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    submitQuiz();
+                    nextQuestion(); // Auto proceed when time is up
                 }
             }, 1000);
         }
 
+        function nextQuestion() {
+            const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
+            if (selectedOption) {
+                quizzes[currentQuestion].selectedOption = selectedOption.value; // Save selected option
+            }
+            currentQuestion++;
+            showQuestion(currentQuestion);
+        }
+
         function submitQuiz() {
             clearInterval(timer);
-            let score = 0;
-            let totalQuestions = quizzes.length;
             const questionList = document.getElementById('questionList');
             questionList.innerHTML = '';
 
-            quizzes.forEach((quiz, index) => {
-                const selectedOption = document.querySelector(`input[name="quiz_${index}"]:checked`);
+            let score = 0;
+            const totalQuestions = quizzes.length;
+
+            quizzes.forEach(quiz => {
                 const questionItem = document.createElement('div');
                 questionItem.classList.add('question-item');
 
                 const correctOption = quiz.options[quiz.correctOption - 1];
-
-                if (selectedOption) {
-                    const userAnswer = selectedOption.value;
-                    if (userAnswer === correctOption) {
-                        score += 4;
-                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                                  <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
-                                                  <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
-                    } else {
+                const userAnswer = quiz.selectedOption || 'No answer';
+                
+                if (quiz.selectedOption === correctOption) {
+                    score += 4;
+                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                              <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
+                                              <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
+                } else {
+                    if (quiz.selectedOption) {
                         score -= 1;
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                                   <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
                                                   <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
+                    } else {
+                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                                  <strong>Your Answer:</strong> <span class="red">No answer</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                     }
-                } else {
-                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                              <strong>Your Answer:</strong> <span class="red">No answer</span><br>
-                                              <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                 }
 
                 questionList.appendChild(questionItem);
