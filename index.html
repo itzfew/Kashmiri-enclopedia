@@ -4,58 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam List</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
             color: #333;
             margin: 0;
             padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
         h1 {
             text-align: center;
-            color: #007BFF;
+            color: #4A90E2;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            border-bottom: 2px solid #4A90E2;
+            padding-bottom: 10px;
+        }
+        .profile {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f7f9fc;
+        }
+        .profile h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin: 0;
+        }
+        .profile img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
         }
         ul {
             list-style: none;
             padding: 0;
+            flex-grow: 1; /* Allow the list to grow and fill available space */
+            overflow-y: auto; /* Scrollable if content exceeds the viewport */
         }
         li {
-            padding: 10px;
+            padding: 15px;
             margin: 10px 0;
-            background: #007BFF;
+            background: #4A90E2;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
             text-align: center;
             cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         li:hover {
-            background: #0056b3;
+            background: #357ABD;
+            transform: translateY(-2px);
         }
         .status {
             text-align: center;
             margin: 10px 0;
             font-weight: bold;
+            color: #e53e3e;
+        }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+            .profile h2 {
+                font-size: 1.2em;
+            }
+            li {
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Available Exams</h1>
-        <ul id="examList"></ul>
-        <div id="status" class="status"></div>
+    <div class="profile">
+        <h2 id="profileName"></h2>
+        <img id="profileImage" src="default-image.png" alt="Profile Image">
+        <button class="btn" id="logoutButton" style="background: #e53e3e; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">Logout</button>
     </div>
+    <h1>Available Exams</h1>
+    <ul id="examList"></ul>
+    <div id="status" class="status"></div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script>
         const firebaseConfig = {
@@ -70,28 +109,56 @@
         };
 
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const database = firebase.database();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadUserProfile(user);
+                loadExams();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        function loadUserProfile(user) {
+            document.getElementById('profileName').innerText = user.displayName || "User";
+            document.getElementById('profileImage').src = user.photoURL || 'default-image.png';
+
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    window.location.href = 'index.html';
+                });
+            });
+        }
 
         function loadExams() {
             const examList = document.getElementById('examList');
-            examList.innerHTML = '';
+            examList.innerHTML = ''; // Clear previous exams to prevent duplication
 
             database.ref('exams').once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const examData = childSnapshot.val();
-                    const listItem = document.createElement('li');
-                    listItem.innerText = examData.title;
-                    listItem.onclick = () => {
-                        window.location.href = `play.html?examKey=${childSnapshot.key}`;
-                    };
-                    examList.appendChild(listItem);
-                });
+                if (snapshot.exists()) {
+                    snapshot.forEach(childSnapshot => {
+                        const examData = childSnapshot.val();
+                        const listItem = document.createElement('li');
+                        listItem.innerText = examData.title;
+                        listItem.onclick = () => {
+                            window.location.href = `play.html?examKey=${childSnapshot.key}`;
+                        };
+                        examList.appendChild(listItem);
+                    });
+                } else {
+                    examList.innerHTML = '<li>No exams available.</li>';
+                }
             }).catch(error => {
                 document.getElementById('status').innerText = `Error loading exams: ${error.message}`;
             });
         }
 
-        window.onload = loadExams;
+        window.onload = function() {
+            loadUserProfile(auth.currentUser);
+            loadExams();
+        };
     </script>
 </body>
 </html>
