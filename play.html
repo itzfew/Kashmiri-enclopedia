@@ -95,25 +95,43 @@
             margin: 20px 0;
             font-size: 1.1em;
         }
-        footer {
+        .timer {
             text-align: center;
+            font-size: 1.5em;
+            color: #dc3545;
+        }
+        .question-list {
+            text-align: left;
             margin-top: 20px;
-            font-size: 0.9em;
+        }
+        .question-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .correct {
+            background-color: #28a745;
+            color: white;
+        }
+        .incorrect {
+            background-color: #dc3545;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 id="examTitle"></h1>
+        <div class="timer" id="timer">Time Left: <span id="time">30</span> seconds</div>
         <div id="quizContainer"></div>
         <button class="btn" onclick="submitQuiz()">Submit Quiz</button>
         <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
         <div class="message" id="feedbackMessage"></div>
+        <div class="question-list" id="questionList"></div>
     </div>
-    <footer>
-        <p>&copy; 2024 Quiz Game. All rights reserved.</p>
-    </footer>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
@@ -136,6 +154,8 @@
         const examKey = urlParams.get('examKey');
 
         let quizzes = [];
+        let timer;
+        let timeLeft = 30;
 
         function loadQuiz() {
             database.ref(`exams/${examKey}/quizzes`).once('value').then(snapshot => {
@@ -144,6 +164,7 @@
                     quizzes.push({ key: childSnapshot.key, ...childSnapshot.val() });
                 });
                 displayQuiz();
+                startTimer();
             }).catch(error => {
                 document.getElementById('result').innerText = `Error loading quizzes: ${error.message}`;
             });
@@ -173,7 +194,7 @@
                     const radio = document.createElement('input');
                     radio.type = 'radio';
                     radio.name = `quiz_${index}`;
-                    radio.value = i + 1; // Store the option number
+                    radio.value = option; // Store the actual option text
                     optionsElement.appendChild(radio);
                     optionsElement.appendChild(label);
                     optionsElement.appendChild(document.createElement('br'));
@@ -185,75 +206,88 @@
             });
         }
 
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
         function submitQuiz() {
+            clearInterval(timer);
             let score = 0;
             let totalQuestions = quizzes.length;
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = '';
 
             quizzes.forEach((quiz, index) => {
                 const selectedOption = document.querySelector(`input[name="quiz_${index}"]:checked`);
-                if (selectedOption) {
-                    const userAnswer = parseInt(selectedOption.value);
-                    const correctAnswer = parseInt(quiz.correctOption);
+                const correctOption = quiz.options[parseInt(quiz.correctOption) - 1]; // Get the correct answer
 
-                    if (userAnswer === correctAnswer) {
+                const questionItem = document.createElement('div');
+                questionItem.classList.add('question-item');
+                
+                if (selectedOption) {
+                    const userAnswer = selectedOption.value;
+                    const result = document.createElement('div');
+
+                    if (userAnswer === correctOption) {
                         score += 4; // Correct answer
+                        questionItem.classList.add('correct');
+                        result.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                            <strong>Your Answer:</strong> <span class="green">${userAnswer}</span><br>
+                                            <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                     } else {
                         score -= 1; // Incorrect answer
+                        questionItem.classList.add('incorrect');
+                        result.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                            <strong>Your Answer:</strong> <span class="red">${userAnswer}</span><br>
+                                            <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                     }
+
+                    questionItem.appendChild(result);
+                } else {
+                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                              <strong>Your Answer:</strong> <span class="red">Not Answered</span><br>
+                                              <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                 }
+
+                questionList.appendChild(questionItem);
             });
 
-            showResult(score, totalQuestions);
+            showResults(score, totalQuestions);
         }
 
-        function showResult(score, totalQuestions) {
-            const resultElement = document.getElementById('result');
+        function showResults(score, totalQuestions) {
+            const resultDiv = document.getElementById('result');
             const feedbackMessage = document.getElementById('feedbackMessage');
-            const totalCorrect = Math.max(0, score / 4); // Each correct answer gives 4 points
-            const totalIncorrect = totalQuestions - totalCorrect;
-            const totalScore = score < 0 ? 0 : score;
+            const percentage = (score / (totalQuestions * 4)) * 100;
 
-            feedbackMessage.innerText = totalScore > 0 ? "Great job!" : "Keep trying!";
-            feedbackMessage.style.color = totalScore > 0 ? "#28a745" : "#dc3545";
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
+            feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
 
-            resultElement.innerHTML = `
-                <h2>Your Results</h2>
-                <div class="result-stats">
-                    <div class="stat green">Total Questions: ${totalQuestions}</div>
-                    <div class="stat">Correct Answers: ${totalCorrect}</div>
-                    <div class="stat red">Incorrect Answers: ${totalIncorrect}</div>
-                    <div class="stat">Total Score: ${totalScore}</div>
-                </div>
-            `;
-            resultElement.style.display = 'block';
-
-            displayChart(totalCorrect, totalIncorrect, totalQuestions);
-        }
-
-        function displayChart(correct, incorrect, total) {
+            // Display chart
             const ctx = document.createElement('canvas');
-            document.getElementById('chartContainer').innerHTML = ''; // Clear previous chart
             document.getElementById('chartContainer').appendChild(ctx);
-
-            new Chart(ctx, {
-                type: 'pie',
+            const chart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Correct', 'Incorrect'],
+                    labels: ['Correct Answers', 'Incorrect Answers'],
                     datasets: [{
-                        data: [correct, incorrect],
+                        label: 'Results',
+                        data: [score > 0 ? score : 0, Math.abs(score) > totalQuestions ? Math.abs(score) : totalQuestions - (score / 4)],
                         backgroundColor: ['#28a745', '#dc3545'],
-                        hoverBackgroundColor: ['#218838', '#c82333']
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Quiz Results Breakdown'
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
                 }
