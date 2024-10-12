@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Game</title>
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #e9ecef;
+            background-color: #f0f4f8;
             margin: 0;
             padding: 20px;
-            color: #333;
         }
         .container {
             max-width: 800px;
             margin: auto;
             padding: 20px;
             background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
@@ -36,14 +36,6 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            background: #007BFF;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-        .profile:hover {
-            background: #0056b3;
         }
         .profile img {
             width: 40px;
@@ -55,13 +47,12 @@
             margin-bottom: 20px;
             padding: 15px;
             border: 1px solid #007BFF;
-            border-radius: 10px;
-            background: #f0f8ff;
+            border-radius: 8px;
+            background: #e9f7ff;
         }
         .question {
             font-weight: bold;
             margin-bottom: 10px;
-            font-size: 1.2em;
         }
         .options {
             margin: 10px 0;
@@ -70,13 +61,12 @@
             background: #007BFF;
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
             transition: background 0.3s;
             margin-top: 10px;
-            font-size: 1em;
         }
         .btn:hover {
             background: #0056b3;
@@ -85,10 +75,10 @@
             display: none;
             text-align: center;
             border: 2px solid #007BFF;
-            border-radius: 10px;
+            border-radius: 8px;
             padding: 20px;
             margin-top: 20px;
-            background: #f0f8ff;
+            background: #e7f0ff;
         }
         .chart-container {
             position: relative;
@@ -97,11 +87,14 @@
             width: 90%;
             margin-top: 20px;
         }
+        .message {
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
         .timer {
             text-align: center;
             font-size: 1.5em;
             color: #dc3545;
-            margin: 10px 0;
         }
         .question-list {
             text-align: left;
@@ -110,6 +103,7 @@
         .question-item {
             margin: 10px 0;
             padding: 10px;
+            border: 1px solid #ddd;
             border-radius: 5px;
             background: #f8f9fa;
         }
@@ -125,22 +119,6 @@
             display: flex;
             justify-content: space-between;
         }
-        .icon {
-            font-size: 20px;
-            margin-right: 10px;
-        }
-        .header {
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .message {
-            margin: 20px 0;
-            font-size: 1.2em;
-        }
     </style>
 </head>
 <body>
@@ -153,7 +131,6 @@
             </div>
         </div>
         <h1 id="examTitle"></h1>
-        <div class="header">Current Time: <span id="currentTime"></span></div>
         <div class="timer" id="timer">Time Left: <span id="time">60</span> seconds</div>
         <div id="quizContainer"></div>
         <div class="navigation">
@@ -190,6 +167,7 @@
         let timer;
         let currentQuestion = 0;
 
+        // Load user profile
         function loadUserProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             const profileImage = document.getElementById('profileImage');
@@ -207,8 +185,10 @@
         function openProfile() {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
+                // User is logged in, show profile
                 alert('User Profile:\nName: ' + user.name);
             } else {
+                // Redirect to login page
                 window.location.href = 'login.html';
             }
         }
@@ -229,7 +209,6 @@
             const examTitle = document.getElementById('examTitle');
             examTitle.innerText = quizzes.length > 0 ? quizzes[0].title : "No Quizzes Available";
             showQuestion(currentQuestion);
-            startCurrentTime();
         }
 
         function showQuestion(index) {
@@ -263,13 +242,16 @@
                 quizElement.appendChild(questionElement);
                 quizElement.appendChild(optionsElement);
                 quizContainer.appendChild(quizElement);
+                
+                if (index === quizzes.length - 1) {
+                    document.getElementById('nextButton').style.display = 'none';
+                    document.getElementById('submitButton').style.display = 'inline-block';
+                } else {
+                    document.getElementById('nextButton').style.display = 'inline-block';
+                    document.getElementById('submitButton').style.display = 'none';
+                }
 
-                startTimer(60); // Start 1 minute timer for each question
-                document.getElementById('nextButton').style.display = 'inline-block';
-                document.getElementById('submitButton').style.display = 'none';
-            } else {
-                document.getElementById('nextButton').style.display = 'none';
-                document.getElementById('submitButton').style.display = 'inline-block';
+                startTimer(60); // Start timer for each question
             }
         }
 
@@ -312,17 +294,15 @@
 
                 const correctOption = quiz.options[quiz.correctOption - 1];
                 const userAnswer = quiz.selectedOption || 'No answer';
-
+                
                 if (quiz.selectedOption === correctOption) {
                     score += 4;
-                    questionItem.classList.add('correct');
                     questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                               <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
                                               <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
                 } else {
                     if (quiz.selectedOption) {
                         score -= 1;
-                        questionItem.classList.add('incorrect');
                         questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
                                                   <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
                                                   <strong>Correct Answer:</strong> <span class="green">${correctOption}</span>`;
@@ -342,7 +322,7 @@
         function showResults(score, totalQuestions) {
             const resultDiv = document.getElementById('result');
             const feedbackMessage = document.getElementById('feedbackMessage');
-            const percentage = Math.round((score / (totalQuestions * 4)) * 100); // Whole numbers
+            const percentage = (score / (totalQuestions * 4)) * 100;
 
             resultDiv.style.display = 'block';
             resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
@@ -357,7 +337,7 @@
                     labels: ['Correct Answers', 'Incorrect Answers'],
                     datasets: [{
                         label: 'Results',
-                        data: [Math.max(0, score / 4), totalQuestions - Math.max(0, score / 4)],
+                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
                         backgroundColor: ['#28a745', '#dc3545'],
                     }]
                 },
@@ -371,12 +351,6 @@
             });
 
             document.getElementById('quizContainer').style.display = 'none'; // Hide quiz
-        }
-
-        function startCurrentTime() {
-            const currentTime = new Date();
-            const timeString = currentTime.toLocaleTimeString();
-            document.getElementById('currentTime').innerText = timeString;
         }
 
         window.onload = function() {
