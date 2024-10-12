@@ -28,6 +28,9 @@
             border-bottom: 2px solid #007BFF;
             padding-bottom: 10px;
         }
+        .form-group {
+            margin-bottom: 15px;
+        }
         .btn {
             background: #007BFF;
             color: white;
@@ -49,6 +52,19 @@
             border-radius: 8px;
             background: #e9f7ff;
         }
+        .question {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #333;
+        }
+        .options {
+            margin: 10px 0;
+        }
+        .options label {
+            margin-left: 10px;
+            font-size: 1em;
+        }
         .timer {
             text-align: center;
             font-size: 1.5em;
@@ -63,6 +79,7 @@
             padding: 20px;
             margin-top: 20px;
             background: #e7f0ff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         .chart-container {
             position: relative;
@@ -76,6 +93,29 @@
             font-size: 1.2em;
             color: #555;
         }
+        .question-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .question-item {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .correct {
+            background-color: #28a745;
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .incorrect {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+        }
         .navigation {
             display: flex;
             justify-content: space-between;
@@ -85,31 +125,41 @@
             flex: 1;
             margin: 0 10px;
         }
-        .profile {
-            display: none;
-            text-align: center;
-            margin-bottom: 20px;
+        @media (max-width: 600px) {
+            .btn {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2em;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 id="examTitle"></h1>
-        <div class="profile" id="profile">
-            <h2>Welcome, <span id="profileName"></span>!</h2>
-            <img id="profileImage" src="" alt="Profile Image" style="border-radius: 50%; width: 50px; height: 50px;">
-            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-            <button class="btn" id="logoutButton">Logout</button>
+        
+        <div id="userInfo" style="display: none;">
+            <div class="form-group">
+                <input type="text" id="username" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+            <button class="btn" onclick="startQuiz()">Start Quiz</button>
         </div>
+
         <div class="timer" id="timer" style="display: none;">Time Left: <span id="time">60</span> seconds</div>
-        <div id="quizContainer"></div>
-        <div class="navigation">
+        <div id="quizContainer" style="display: none;"></div>
+        <div class="navigation" id="navigation" style="display: none;">
             <button class="btn" id="nextButton" onclick="nextQuestion()">Next</button>
             <button class="btn" id="submitButton" onclick="submitQuiz()" style="display: none;">Submit</button>
         </div>
         <div id="result"></div>
         <div class="chart-container" id="chartContainer"></div>
         <div class="message" id="feedbackMessage"></div>
+        <div class="question-list" id="questionList"></div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
@@ -129,7 +179,6 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
         const database = firebase.database();
         const urlParams = new URLSearchParams(window.location.search);
         const examKey = urlParams.get('examKey');
@@ -137,29 +186,12 @@
         let quizzes = [];
         let timer;
         let currentQuestion = 0;
+        let username, email;
 
-        // Load user data if logged in
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                loadUserProfile(user);
-                loadQuiz();
-            } else {
-                window.location.href = 'index.html'; // Redirect to login page
-            }
-        });
-
-        function loadUserProfile(user) {
-            document.getElementById('profile').style.display = 'block';
-            document.getElementById('profileName').innerText = user.displayName || "User";
-            document.getElementById('profileEmail').innerText = user.email;
-            document.getElementById('profileImage').src = user.photoURL || 'default-image.png';
-
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                auth.signOut().then(() => {
-                    window.location.href = 'index.html'; // Redirect to login page
-                });
-            });
-        }
+        window.onload = function() {
+            document.getElementById('userInfo').style.display = 'block';
+            loadQuiz();
+        };
 
         function loadQuiz() {
             database.ref(`exams/${examKey}/quizzes`).once('value').then(snapshot => {
@@ -176,7 +208,19 @@
         function displayQuiz() {
             const examTitle = document.getElementById('examTitle');
             examTitle.innerText = quizzes.length > 0 ? quizzes[0].title : "No Quizzes Available";
-            showQuestion(currentQuestion);
+        }
+
+        function startQuiz() {
+            username = document.getElementById('username').value;
+            email = document.getElementById('email').value;
+
+            if (username && email) {
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('timer').style.display = 'block';
+                document.getElementById('quizContainer').style.display = 'block';
+                document.getElementById('navigation').style.display = 'block';
+                showQuestion(currentQuestion);
+            }
         }
 
         function showQuestion(index) {
@@ -221,7 +265,6 @@
         function startTimer(seconds) {
             let timeLeft = seconds;
             document.getElementById('time').innerText = timeLeft;
-            document.getElementById('timer').style.display = 'block';
 
             clearInterval(timer);
             timer = setInterval(() => {
@@ -238,88 +281,58 @@
         function nextQuestion() {
             const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
             if (selectedOption) {
-                quizzes[currentQuestion].selectedOption = selectedOption.value;
+                quizzes[currentQuestion].selected = selectedOption.value;
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                alert('Please select an answer before proceeding!');
             }
-            currentQuestion++;
-            showQuestion(currentQuestion);
         }
 
         function submitQuiz() {
             clearInterval(timer);
-            const questionList = document.createElement('div');
-            questionList.className = 'question-list';
-            document.getElementById('quizContainer').appendChild(questionList);
-
             let score = 0;
-            const totalQuestions = quizzes.length;
+            const questionList = document.getElementById('questionList');
+            questionList.innerHTML = '';
 
-            quizzes.forEach(quiz => {
+            quizzes.forEach((quiz, index) => {
                 const questionItem = document.createElement('div');
                 questionItem.classList.add('question-item');
-
-                const correctOption = quiz.options[quiz.correctOption - 1];
-                const userAnswer = quiz.selectedOption || 'No answer';
+                questionItem.innerText = `${index + 1}. ${quiz.question}`;
                 
-                if (quiz.selectedOption === correctOption) {
-                    score += 4;
-                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                              <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
-                                              <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                if (quiz.selected === quiz.answer) {
+                    score++;
+                    questionItem.classList.add('correct');
+                    questionItem.innerText += ' (Correct)';
                 } else {
-                    if (quiz.selectedOption) {
-                        score -= 1;
-                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                                  <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
-                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
-                    } else {
-                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
-                                                  <strong>Your Answer:</strong> <span class="incorrect">No answer</span><br>
-                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
-                    }
+                    questionItem.classList.add('incorrect');
+                    questionItem.innerText += ` (Incorrect, Correct answer: ${quiz.answer})`;
                 }
 
                 questionList.appendChild(questionItem);
             });
 
-            showResults(score, totalQuestions);
+            const resultMessage = `You scored ${score} out of ${quizzes.length}`;
+            document.getElementById('result').innerText = resultMessage;
+            document.getElementById('result').style.display = 'block';
+
+            saveScore(score);
         }
 
-        function showResults(score, totalQuestions) {
-            const resultDiv = document.getElementById('result');
-            const feedbackMessage = document.getElementById('feedbackMessage');
-            const percentage = (score / (totalQuestions * 4)) * 100;
+        function saveScore(score) {
+            const scoreData = {
+                username: username,
+                email: email,
+                score: score,
+                timestamp: new Date().toISOString()
+            };
 
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
-            feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
-
-            const ctx = document.createElement('canvas');
-            document.getElementById('chartContainer').appendChild(ctx);
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Correct Answers', 'Incorrect Answers'],
-                    datasets: [{
-                        label: 'Results',
-                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
-                        backgroundColor: ['#28a745', '#dc3545'],
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
+            database.ref(`scores`).push(scoreData).then(() => {
+                console.log('Score saved successfully!');
+            }).catch(error => {
+                console.error('Error saving score:', error);
             });
-
-            document.getElementById('quizContainer').style.display = 'none';
         }
-
-        window.onload = function() {
-            loadQuiz();
-        };
     </script>
 </body>
 </html>
