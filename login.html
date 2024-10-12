@@ -3,214 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up / Login</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Login/Signup</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f4f8;
             margin: 0;
-            padding: 20px;
+            padding: 50px;
         }
         .container {
             max-width: 400px;
             margin: auto;
             padding: 20px;
-            background: #fff;
+            background: white;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        h1 {
+        h2 {
             text-align: center;
             color: #007BFF;
             margin-bottom: 20px;
         }
-        .form-group {
+        .input-group {
             margin-bottom: 15px;
         }
-        label {
+        .input-group label {
             display: block;
             margin-bottom: 5px;
         }
-        input[type="text"], input[type="email"], input[type="password"] {
+        .input-group input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
         .btn {
+            width: 100%;
+            padding: 10px;
             background: #007BFF;
             color: white;
             border: none;
-            padding: 12px;
             border-radius: 5px;
             cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
             transition: background 0.3s;
-            font-size: 1em;
         }
         .btn:hover {
             background: #0056b3;
         }
         .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: #db4437;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
             margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
         .google-btn:hover {
-            background: #c13530;
+            background: #c13527;
         }
-        #toggleText {
+        .switch {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
+            margin-top: 10px;
         }
-        #toggleLink {
+        .switch a {
             color: #007BFF;
-            cursor: pointer;
-        }
-        .profile {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .profile img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 id="formTitle">Sign Up</h1>
+        <h2 id="formTitle">Login</h2>
         <form id="authForm">
-            <div class="form-group" id="usernameField">
-                <label for="username">Username</label>
-                <input type="text" id="username" placeholder="Enter your username" required>
-            </div>
-            <div class="form-group">
+            <div class="input-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Enter your email" required>
+                <input type="email" id="email" required>
             </div>
-            <div class="form-group">
+            <div class="input-group" id="usernameGroup" style="display: none;">
+                <label for="username">Username</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
+                <input type="password" id="password" required>
             </div>
-            <button type="submit" class="btn" id="submitButton">Sign Up</button>
-            <button type="button" class="btn google-btn" id="googleButton">
-                <i class="fab fa-google"></i> Sign in with Google
-            </button>
-            <p id="toggleText">Already have an account? <span id="toggleLink">Login</span></p>
+            <button type="submit" class="btn" id="submitBtn">Login</button>
+            <button type="button" class="google-btn" id="googleBtn">Sign in with Google</button>
+            <div class="switch">
+                <span id="switchText">Don't have an account? <a href="#" id="switchLink">Sign Up</a></span>
+            </div>
         </form>
-        <div class="profile" id="profile">
-            <h2>Profile</h2>
-            <img id="profileImage" src="" alt="Profile Image">
-            <p><strong>Username:</strong> <span id="profileName"></span></p>
-            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-            <button class="btn" id="logoutButton">Logout</button>
-        </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
-            authDomain: "eduhub-a3762.firebaseapp.com",
-            databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
-            projectId: "eduhub-a3762",
-            storageBucket: "eduhub-a3762.appspot.com",
-            messagingSenderId: "115221366217",
-            appId: "1:115221366217:web:d6cee26ef04752d1519418",
-            measurementId: "G-X1MQF5SR3Z"
-        };
-
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCotpjWvQ5cG5cOpgiNvpAS4ftvwKRO_N0",
+  authDomain: "eduhub-a3762.firebaseapp.com",
+  databaseURL: "https://eduhub-a3762-default-rtdb.firebaseio.com",
+  projectId: "eduhub-a3762",
+  storageBucket: "eduhub-a3762.appspot.com",
+  messagingSenderId: "115221366217",
+  appId: "1:115221366217:web:d6cee26ef04752d1519418",
+  measurementId: "G-X1MQF5SR3Z"
+};
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const authForm = document.getElementById('authForm');
-        const formTitle = document.getElementById('formTitle');
-        const toggleText = document.getElementById('toggleText');
-        const toggleLink = document.getElementById('toggleLink');
-        const usernameField = document.getElementById('usernameField');
-        const profileSection = document.getElementById('profile');
-        const profileImage = document.getElementById('profileImage');
-        const profileName = document.getElementById('profileName');
-        const profileEmail = document.getElementById('profileEmail');
-        const logoutButton = document.getElementById('logoutButton');
 
-        toggleLink.addEventListener('click', () => {
-            const isLogin = formTitle.innerText === 'Login';
-            formTitle.innerText = isLogin ? 'Sign Up' : 'Login';
-            toggleText.innerHTML = isLogin ? "Don't have an account? <span id='toggleLink'>Sign Up</span>" : "Already have an account? <span id='toggleLink'>Login</span>";
-            usernameField.style.display = isLogin ? 'none' : 'block';
-            document.getElementById('submitButton').innerText = isLogin ? 'Login' : 'Sign Up';
-        });
+        const authForm = document.getElementById('authForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const googleBtn = document.getElementById('googleBtn');
+        const switchLink = document.getElementById('switchLink');
+        const formTitle = document.getElementById('formTitle');
+        const usernameGroup = document.getElementById('usernameGroup');
+        const switchText = document.getElementById('switchText');
+
+        let isSignup = false;
 
         authForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const username = document.getElementById('username').value;
 
-            const isLogin = formTitle.innerText === 'Login';
-
-            if (isLogin) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        alert('Login successful!');
-                        loadUserProfile(userCredential.user);
-                    })
-                    .catch(error => {
-                        alert(error.message);
-                    });
+            if (isSignup) {
+                const username = document.getElementById('username').value;
+                createUser(email, password, username);
             } else {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        alert('Sign up successful!');
-                        loadUserProfile(userCredential.user);
-                    })
-                    .catch(error => {
-                        alert(error.message);
-                    });
+                loginUser(email, password);
             }
         });
 
-        document.getElementById('googleButton').addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(result => {
-                    alert('Google sign-in successful!');
-                    loadUserProfile(result.user);
+        googleBtn.addEventListener('click', signInWithGoogle);
+
+        switchLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isSignup = !isSignup;
+            updateForm();
+        });
+
+        function updateForm() {
+            if (isSignup) {
+                formTitle.innerText = "Sign Up";
+                submitBtn.innerText = "Sign Up";
+                usernameGroup.style.display = "block";
+                switchText.innerHTML = `Already have an account? <a href="#" id="switchLink">Login</a>`;
+            } else {
+                formTitle.innerText = "Login";
+                submitBtn.innerText = "Login";
+                usernameGroup.style.display = "none";
+                switchText.innerHTML = `Don't have an account? <a href="#" id="switchLink">Sign Up</a>`;
+            }
+        }
+
+        function createUser(email, password, username) {
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    // User created, update profile with username
+                    const user = userCredential.user;
+                    return user.updateProfile({
+                        displayName: username
+                    });
+                })
+                .then(() => {
+                    alert('User created successfully!');
                 })
                 .catch(error => {
                     alert(error.message);
                 });
-        });
-
-        function loadUserProfile(user) {
-            profileSection.style.display = 'block';
-            authForm.style.display = 'none';
-            profileImage.src = user.photoURL || 'default-image.png'; // Replace with a default image if no profile photo
-            profileName.innerText = user.displayName || document.getElementById('username').value; // Use display name or username
-            profileEmail.innerText = user.email;
         }
 
-        logoutButton.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                alert('Logged out successfully');
-                profileSection.style.display = 'none';
-                authForm.style.display = 'block';
-            });
-        });
+        function loginUser(email, password) {
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    alert('Logged in successfully!');
+                    // Redirect to the main app page or dashboard
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        }
 
-        // Check if user is already logged in
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                loadUserProfile(user);
-            }
-        });
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    const user = result.user;
+                    alert('Logged in with Google: ' + user.displayName);
+                    // Redirect to the main app page or dashboard
+                })
+                .catch(error => {
+                    alert(error.message);
+                });
+        }
     </script>
 </body>
 </html>
