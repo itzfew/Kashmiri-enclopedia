@@ -258,75 +258,96 @@
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('time').innerText = timeLeft;
+
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    alert('Time is up! Submitting your quiz.');
-                    submitQuiz();
+                    nextQuestion();
                 }
             }, 1000);
         }
 
         function nextQuestion() {
+            const selectedOption = document.querySelector(`input[name="quiz_${currentQuestion}"]:checked`);
+            if (selectedOption) {
+                quizzes[currentQuestion].selectedOption = selectedOption.value;
+            }
             currentQuestion++;
             showQuestion(currentQuestion);
         }
 
         function submitQuiz() {
             clearInterval(timer);
-            const userAnswers = [];
-            quizzes.forEach((quiz, index) => {
-                const selectedOption = document.querySelector(`input[name="quiz_${index}"]:checked`);
-                userAnswers.push(selectedOption ? selectedOption.value : null);
-            });
-
-            const score = calculateScore(userAnswers);
-            showResult(score);
-            saveResults(score);
-        }
-
-        function calculateScore(answers) {
-            let score = 0;
-            quizzes.forEach((quiz, index) => {
-                if (answers[index] === quiz.correctAnswer) {
-                    score++;
-                }
-            });
-            return score;
-        }
-
-        function showResult(score) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `You scored <strong>${score}</strong> out of <strong>${quizzes.length}</strong>`;
-            displayQuestionList();
-        }
-
-        function displayQuestionList() {
             const questionList = document.getElementById('questionList');
             questionList.innerHTML = '';
-            quizzes.forEach((quiz, index) => {
+
+            let score = 0;
+            const totalQuestions = quizzes.length;
+
+            quizzes.forEach(quiz => {
                 const questionItem = document.createElement('div');
                 questionItem.classList.add('question-item');
-                questionItem.innerText = `${index + 1}. ${quiz.question}`;
-                questionItem.classList.add(quiz.correctAnswer === document.querySelector(`input[name="quiz_${index}"]:checked`)?.value ? 'correct' : 'incorrect');
+
+                const correctOption = quiz.options[quiz.correctOption - 1];
+                const userAnswer = quiz.selectedOption || 'No answer';
+                
+                if (quiz.selectedOption === correctOption) {
+                    score += 4;
+                    questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                              <strong>Your Answer:</strong> <span class="correct">${userAnswer}</span><br>
+                                              <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                } else {
+                    if (quiz.selectedOption) {
+                        score -= 1;
+                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                                  <strong>Your Answer:</strong> <span class="incorrect">${userAnswer}</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                    } else {
+                        questionItem.innerHTML = `<strong>Question:</strong> ${quiz.question}<br>
+                                                  <strong>Your Answer:</strong> <span class="incorrect">No answer</span><br>
+                                                  <strong>Correct Answer:</strong> <span class="correct">${correctOption}</span>`;
+                    }
+                }
+
                 questionList.appendChild(questionItem);
             });
+
+            showResults(score, totalQuestions);
         }
 
-        function saveResults(score) {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (user) {
-                const userId = user.id;
-                const resultsRef = database.ref(`users/${userId}/results`);
-                resultsRef.push({
-                    examKey: examKey,
-                    score: score,
-                    timestamp: Date.now()
-                });
-            }
+        function showResults(score, totalQuestions) {
+            const resultDiv = document.getElementById('result');
+            const feedbackMessage = document.getElementById('feedbackMessage');
+            const percentage = (score / (totalQuestions * 4)) * 100;
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h2>Your Score: ${score} / ${totalQuestions * 4}</h2>`;
+            feedbackMessage.innerText = percentage >= 75 ? "Great job! 🎉" : "Keep trying! You'll get there!";
+
+            const ctx = document.createElement('canvas');
+            document.getElementById('chartContainer').appendChild(ctx);
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Correct Answers', 'Incorrect Answers'],
+                    datasets: [{
+                        label: 'Results',
+                        data: [score > 0 ? score / 4 : 0, totalQuestions - (score / 4)],
+                        backgroundColor: ['#28a745', '#dc3545'],
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('quizContainer').style.display = 'none';
         }
 
-        window.onload = () => {
+        window.onload = function() {
             loadUserProfile();
             loadQuiz();
         };
